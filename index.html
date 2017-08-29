@@ -8,7 +8,14 @@
 			font-family: digit;
 			src: url('digital-7_mono.ttf') format("truetype");
 		}
+		div.footer
+		{
+			position: relative;
+			bottom: -100px;
+			text-align: center;
+		}
 	</style>
+
 	<link href="css/default.css" type="text/css" rel="stylesheet">
 	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/garden.js"></script>
@@ -94,7 +101,6 @@
 			setTimeout(function () {
 				startHeartAnimation();
 			}, 5000);
-
 			timeElapse(together);
 			setInterval(function () {
 				timeElapse(together);
@@ -104,5 +110,11 @@
 			$("#code").typewriter();
 		}
 	</script>
+	<div class="footer">
+		<span style="text-align: center;display: block;color: #808080;bottom: -20">
+			<a href="http://www.miitbeian.gov.cn">陕ICP备16013265号-1</a>
+		</span>
+	</div>
 </body>
+
 </html>
