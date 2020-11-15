@@ -1,4 +1,4 @@
-# 根据LoveRecord改变，raichu 和 megaRaichu的故事
+# 根据LoveRecord改编，raichu 和 megaRaichu的故事
 
 
 
