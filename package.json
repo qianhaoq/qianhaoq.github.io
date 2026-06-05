@@ -14,6 +14,8 @@
     "unit:gate": "rm -rf .test-results; pnpm unit:report || true; tsx scripts/check-unit-pass-rate.ts .test-results/unit-results.json 90",
     "bdd": "cucumber-js --config cucumber.mjs",
     "quality": "pnpm check && pnpm unit:gate && pnpm build && pnpm bdd",
+    "author": "tsx scripts/author.ts",
+    "write": "tsx scripts/write-post.ts",
     "new:post": "tsx scripts/new-post.ts",
     "preview": "astro preview",
     "astro": "astro"

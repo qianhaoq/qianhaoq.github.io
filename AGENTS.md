@@ -6,6 +6,7 @@
 
 - 这是 `qianhaoq.github.io` 个人博客主站，发布到 GitHub Pages。
 - 运行时是纯静态站点，不引入数据库、常驻服务端或需要后端权限的功能。
+- 项目有两个入口：公开读者入口是 GitHub Pages 静态站点；作者入口是本地仓库命令和文档，不发布成公开后台。
 - 写作内容优先服务 AI Coding、工程实践、产品思考和长期复盘。
 
 ## 技术约束
@@ -13,7 +14,8 @@
 - 使用 pnpm，不混用 npm、yarn 或 bun lockfile。
 - 使用 Astro + TypeScript strict + MDX + Tailwind CSS。
 - 文章放在 `src/content/posts/*.mdx`，通过 `src/content.config.ts` 的 Astro content collection 校验 frontmatter。
-- `CLAUDE.md` 和 `claude.md` 是指向本文件的软链接；修改 agent 指南时只编辑 `AGENTS.md`。
+- 不在公开站点实现 `/admin`、登录态、GitHub token 写入或服务端发布按钮；写入仓库的能力只能放在本地脚本或 GitHub 仓库权限边界内。
+- `CLAUDE.md` 和 `agent.md` 是指向本文件的软链接；修改 agent 指南时只编辑 `AGENTS.md`。
 - BDD 约束写在 `bdd.md`；涉及用户可见行为时必须同步更新 `features/**/*.feature` 和 step definitions。
 
 ## 内容接口
@@ -25,14 +27,14 @@
 - `pubDate`: 必填日期。
 - `updatedDate`: 可选日期。
 - `tags`: 字符串数组，默认空数组。
-- `draft`: 可选布尔值；草稿不得出现在公开列表、RSS、搜索索引和 sitemap。
+- `draft`: 必填布尔值；草稿不得出现在公开列表、RSS、搜索索引和 sitemap。
 - `hero`: 可选图片 URL。
 - `series`: 可选系列名。
 
 新文章使用：
 
 ```bash
-pnpm new:post "文章标题"
+pnpm write "文章标题"
 ```
 
 ## 验证要求
@@ -60,6 +62,16 @@ pnpm quality
 - BDD 场景描述业务行为，不描述组件内部实现。
 - `pnpm bdd` 必须在 `pnpm build` 后执行，因为它读取 `dist/` 产物。
 - 草稿隔离、已发布文章可发现、RSS、sitemap、搜索索引等发布契约必须保持 BDD 覆盖。
+- 作者入口、写作脚本、草稿默认私有等写作契约必须保持 BDD 覆盖，且 BDD 只能用只读或 `--dry-run` 验收作者流程。
+
+## Review guidelines
+
+- 重要问题：会导致公开站点构建失败、草稿泄露、RSS/sitemap/search 暴露错误、GitHub Pages 发布失败、作者入口误发布为公开后台、token/secret 暴露、或 `pnpm quality` 门禁被绕过。
+- 重要问题：涉及用户可见行为但没有同步 BDD 场景，或改变内容 schema 但没有更新示例文章、写作脚本和文档。
+- 重要问题：新增公开路由写入仓库、保存 GitHub token、模拟登录态或引入常驻服务端；这违反 GitHub Pages 静态边界。
+- Nit：纯文案、样式微调或命名建议，除非它会误导发布、写作或评审流程。
+- 不要报告 CI 已强制覆盖的普通格式问题；优先报告 CI 没法判断的发布契约、内容可见性、权限边界和文档/行为不一致。
+- 每条行为类发现都应给出具体文件路径和可复现的验证方式。
 
 ## 提交规范
 

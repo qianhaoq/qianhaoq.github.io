@@ -3,6 +3,7 @@ title: "这个博客从这里开始"
 description: "记录这个站点的写作边界、技术选择和后续维护方式。"
 pubDate: 2026-06-05
 tags: ["AI Coding", "工程实践", "写作系统"]
+draft: false
 hero: "https://avatars.githubusercontent.com/u/12046046?v=4"
 ---
 
@@ -21,7 +22,6 @@ hero: "https://avatars.githubusercontent.com/u/12046046?v=4"
 文章使用 MDX 编写，提交到 `main` 后由 GitHub Actions 构建并发布到 GitHub Pages。搜索索引、RSS 和站点地图都在构建期生成。
 
 ```bash
-pnpm new:post "新的文章标题"
-pnpm check
-pnpm build
+pnpm write "新的文章标题"
+pnpm quality
 ```

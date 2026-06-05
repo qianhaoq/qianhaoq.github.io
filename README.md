@@ -4,11 +4,17 @@
 
 ## 写作
 
+这个博客有两个入口：
+
+- 读者入口：<https://qianhaoq.github.io>
+- 作者入口：本地仓库命令 `pnpm author` 和 `pnpm write "文章标题"`
+
 ```bash
-pnpm new:post "文章标题"
+pnpm author
+pnpm write "文章标题"
 ```
 
-新文章会生成在 `src/content/posts/`，默认 `draft: true`。写完后把 `draft` 改为 `false` 或删除该字段，再提交到 `main`。
+新文章会生成在 `src/content/posts/`，默认 `draft: true`。写完后把 `draft` 改为 `false`，再提交到 `main`。
 
 Frontmatter:
 
@@ -22,6 +28,8 @@ draft: false
 hero: "https://example.com/image.jpg"
 series: "系列名"
 ```
+
+更完整的作者流程见 `AUTHORING.md`。
 
 ## 开发
 
