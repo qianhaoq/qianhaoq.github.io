@@ -28,19 +28,33 @@ series: "系列名"
 ```bash
 pnpm install
 pnpm dev
-pnpm check
-pnpm build
+pnpm quality
 pnpm preview
 ```
 
 `pnpm build` 会先执行 Astro 静态构建，再生成 Pagefind 搜索索引。搜索页需要在 `pnpm build && pnpm preview` 后验证。
+
+## 质量门禁
+
+```bash
+pnpm quality
+```
+
+门禁顺序：
+
+1. `pnpm check`
+2. `pnpm unit:gate`，Vitest 单测通过率必须严格大于 90%
+3. `pnpm build`
+4. `pnpm bdd`
+
+BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 
 ## 发布
 
 仓库使用 GitHub Actions 发布到 GitHub Pages。推送 `main` 后会执行：
 
 1. `withastro/action@v5` 安装依赖。
-2. `pnpm check && pnpm build`
+2. `pnpm quality`
 3. `actions/deploy-pages@v4`
 
 GitHub Pages 配置应使用 workflow source，不使用 `gh-pages` 分支。

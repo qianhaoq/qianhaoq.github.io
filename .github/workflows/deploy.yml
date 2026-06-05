@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 24
           package-manager: pnpm@10.12.1
-          build-cmd: pnpm check && pnpm build
+          build-cmd: pnpm quality
 
   deploy:
     environment:

@@ -1,5 +1,7 @@
 # build output
 dist/
+coverage/
+.test-results/
 # generated types
 .astro/
 

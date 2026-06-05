@@ -9,6 +9,11 @@
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist",
     "check": "astro check",
+    "unit": "vitest run",
+    "unit:report": "vitest run --reporter=json --outputFile=.test-results/unit-results.json",
+    "unit:gate": "rm -rf .test-results; pnpm unit:report || true; tsx scripts/check-unit-pass-rate.ts .test-results/unit-results.json 90",
+    "bdd": "cucumber-js --config cucumber.mjs",
+    "quality": "pnpm check && pnpm unit:gate && pnpm build && pnpm bdd",
     "new:post": "tsx scripts/new-post.ts",
     "preview": "astro preview",
     "astro": "astro"
@@ -24,8 +29,11 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@cucumber/cucumber": "^13.0.0",
     "@types/node": "^25.9.1",
+    "cheerio": "^1.2.0",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   }
 }
