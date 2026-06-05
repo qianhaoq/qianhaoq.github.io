@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatDate, getPostUrl, getPublishedPosts, groupPostsByYear } from '../lib/posts';
+
+const posts = await getPublishedPosts();
+const groups = groupPostsByYear(posts);
+const years = Object.keys(groups).sort((a, b) => Number(b) - Number(a));
+---
+
+<BaseLayout title="归档" description="Hao Qian 博客文章归档">
+  <section class="page-hero">
+    <p class="eyebrow">Archive</p>
+    <h1>归档</h1>
+    <p>按年份快速回看写作轨迹。</p>
+  </section>
+
+  <section class="section-band">
+    <div class="archive-list">
+      {years.map((year) => (
+        <section>
+          <h2>{year}</h2>
+          {groups[year].map((post) => (
+            <a class="archive-item" href={getPostUrl(post)}>
+              <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+              <span>{post.data.title}</span>
+            </a>
+          ))}
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

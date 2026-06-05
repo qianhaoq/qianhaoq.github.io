@@ -1,0 +1,27 @@
+---
+title: "这个博客从这里开始"
+description: "记录这个站点的写作边界、技术选择和后续维护方式。"
+pubDate: 2026-06-05
+tags: ["AI Coding", "工程实践", "写作系统"]
+hero: "https://avatars.githubusercontent.com/u/12046046?v=4"
+---
+
+## 为什么建这个站点
+
+很多工程判断只有在上下文、证据和取舍被保留下来时才有价值。这个博客会把 AI Coding、工程实践、产品思考和协作流程整理成长期可搜索的笔记。
+
+## 写作边界
+
+- 保留问题背景，而不是只写结论。
+- 记录关键证据，包括代码路径、日志、配置、接口和验证方式。
+- 给出可执行的下一步，方便未来复盘或继续推进。
+
+## 发布方式
+
+文章使用 MDX 编写，提交到 `main` 后由 GitHub Actions 构建并发布到 GitHub Pages。搜索索引、RSS 和站点地图都在构建期生成。
+
+```bash
+pnpm new:post "新的文章标题"
+pnpm check
+pnpm build
+```

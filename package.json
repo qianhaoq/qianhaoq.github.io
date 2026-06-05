@@ -7,11 +7,25 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
+    "check": "astro check",
+    "new:post": "tsx scripts/new-post.ts",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.4.4"
+    "@astrojs/mdx": "^6.0.2",
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^6.4.4",
+    "pagefind": "^1.5.2",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
   }
 }

@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="搜索" description="搜索 Hao Qian 的博客文章">
+  <section class="page-hero">
+    <p class="eyebrow">Search</p>
+    <h1>搜索</h1>
+    <p>输入关键词，检索文章标题、正文和标签。</p>
+  </section>
+
+  <section class="section-band">
+    <div class="search-panel">
+      <label for="search-input">关键词</label>
+      <input id="search-input" type="search" placeholder="例如：AI Coding、Agent、工程实践" autocomplete="off" />
+      <p id="search-status">搜索索引会在构建后加载。本地开发时请先运行 pnpm build，再用 pnpm preview 验证。</p>
+      <div id="search-results" class="search-results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>('#search-input');
+    const status = document.querySelector<HTMLElement>('#search-status');
+    const results = document.querySelector<HTMLElement>('#search-results');
+
+    const escapeHtml = (value: string) =>
+      value.replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char] ?? char);
+
+    const renderResults = (items: Array<{ url: string; meta: { title?: string }; excerpt: string }>) => {
+      if (!results || !status) return;
+      if (items.length === 0) {
+        status.textContent = '没有找到匹配文章。';
+        results.innerHTML = '';
+        return;
+      }
+      status.textContent = `找到 ${items.length} 条结果。`;
+      results.innerHTML = items.map((item) => `
+        <a class="search-result" href="${item.url}">
+          <strong>${escapeHtml(item.meta.title ?? '未命名文章')}</strong>
+          <span>${item.excerpt}</span>
+        </a>
+      `).join('');
+    };
+
+    const bootSearch = async () => {
+      if (!input || !status) return;
+      try {
+        const loadPagefind = new Function('return import("/pagefind/pagefind.js")') as () => Promise<any>;
+        const pagefind = await loadPagefind();
+        await pagefind.options({ excerptLength: 28 });
+        status.textContent = '搜索已就绪。';
+        input.addEventListener('input', async () => {
+          const query = input.value.trim();
+          if (!query) {
+            status.textContent = '输入关键词开始搜索。';
+            if (results) results.innerHTML = '';
+            return;
+          }
+          const search = await pagefind.search(query);
+          const data = await Promise.all(search.results.slice(0, 12).map((result: any) => result.data()));
+          renderResults(data);
+        });
+      } catch {
+        status.textContent = '当前环境没有加载到 Pagefind 索引。请运行 pnpm build && pnpm preview 后再验证搜索。';
+      }
+    };
+
+    bootSearch();
+  </script>
+</BaseLayout>

@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPublishedPosts } from '../../lib/posts';
+
+const posts = await getPublishedPosts();
+---
+
+<BaseLayout title="文章" description="Hao Qian 的全部博客文章">
+  <section class="page-hero">
+    <p class="eyebrow">Writing</p>
+    <h1>文章</h1>
+    <p>按时间倒序整理 AI Coding、工程实践和产品思考。</p>
+  </section>
+
+  <section class="section-band">
+    <div class="post-list">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

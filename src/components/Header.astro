@@ -1,0 +1,25 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV_ITEMS, SITE } from '../lib/site';
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) => href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+---
+
+<header class="site-header">
+  <a class="brand-link" href="/" aria-label="回到首页">
+    <span class="brand-mark">HQ</span>
+    <span class="brand-text">
+      <strong>{SITE.title}</strong>
+      <small>{SITE.subtitle}</small>
+    </span>
+  </a>
+  <nav class="site-nav" aria-label="主导航">
+    {NAV_ITEMS.map((item) => (
+      <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+        {item.label}
+      </a>
+    ))}
+  </nav>
+  <ThemeToggle />
+</header>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { render } from 'astro:content';
+import { formatDate, getPostSlug, getPublishedPosts, getReadingTime, slugifyTag } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({
+    params: { slug: getPostSlug(post) },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 3);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="post-shell" data-pagefind-body>
+    <header class="post-header">
+      <div class="post-card-meta">
+        <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+        <span>{getReadingTime(post.body)}</span>
+        {post.data.updatedDate && <span>更新于 {formatDate(post.data.updatedDate)}</span>}
+      </div>
+      <h1>{post.data.title}</h1>
+      <p>{post.data.description}</p>
+      <div class="tag-row">
+        {post.data.tags.map((tag) => <a href={`/tags/${slugifyTag(tag)}/`}>{tag}</a>)}
+      </div>
+    </header>
+
+    {post.data.hero && <img class="post-hero-image" src={post.data.hero} alt="" loading="eager" />}
+
+    <div class="post-layout">
+      {toc.length > 0 && (
+        <aside class="toc" aria-label="文章目录">
+          <strong>目录</strong>
+          {toc.map((heading) => (
+            <a class={`depth-${heading.depth}`} href={`#${heading.slug}`}>{heading.text}</a>
+          ))}
+        </aside>
+      )}
+      <div class="article-content">
+        <Content />
+      </div>
+    </div>
+  </article>
+</BaseLayout>

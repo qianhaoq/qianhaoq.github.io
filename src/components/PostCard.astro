@@ -1,0 +1,23 @@
+---
+import type { Post } from '../lib/posts';
+import { formatDate, getPostUrl, getReadingTime, slugifyTag } from '../lib/posts';
+
+interface Props {
+  post: Post;
+  compact?: boolean;
+}
+
+const { post, compact = false } = Astro.props;
+---
+
+<article class:list={['post-card', { compact }]}>
+  <div class="post-card-meta">
+    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+    <span>{getReadingTime(post.body)}</span>
+  </div>
+  <h2><a href={getPostUrl(post)}>{post.data.title}</a></h2>
+  <p>{post.data.description}</p>
+  <div class="tag-row">
+    {post.data.tags.map((tag) => <a href={`/tags/${slugifyTag(tag)}/`}>{tag}</a>)}
+  </div>
+</article>

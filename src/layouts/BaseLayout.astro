@@ -1,0 +1,89 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = SITE.description } = Astro.props;
+const pageTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} | ${SITE.subtitle}`;
+const canonical = new URL(Astro.url.pathname, SITE.url);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={SITE.avatar} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#f6f7f4" />
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = stored || (prefersDark ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <script is:inline>
+      (() => {
+        const bar = document.querySelector('.reading-progress');
+        const update = () => {
+          if (!bar) return;
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          const value = max <= 0 ? 0 : Math.min(1, window.scrollY / max);
+          bar.style.transform = `scaleX(${value})`;
+        };
+        update();
+        document.addEventListener('scroll', update, { passive: true });
+      })();
+    </script>
+    <script is:inline>
+      (() => {
+        document.querySelectorAll('.article-content pre').forEach((pre) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'copy-code';
+          button.textContent = '复制';
+          button.setAttribute('aria-label', '复制代码');
+          button.addEventListener('click', async () => {
+            const code = pre.querySelector('code')?.textContent ?? '';
+            await navigator.clipboard.writeText(code);
+            button.textContent = '已复制';
+            window.setTimeout(() => {
+              button.textContent = '复制';
+            }, 1400);
+          });
+          pre.appendChild(button);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,17 +1,74 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { SITE } from '../lib/site';
+import { getAllTags, getPublishedPosts } from '../lib/posts';
 
+const posts = await getPublishedPosts();
+const latestPosts = posts.slice(0, 3);
+const tags = getAllTags(posts).slice(0, 10);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout>
+  <section class="hero" style={`--hero-image: url(${SITE.avatar})`}>
+    <div class="hero-content">
+      <p class="eyebrow">Personal technical notes</p>
+      <h1>{SITE.title}</h1>
+      <p class="hero-subtitle">{SITE.subtitle}</p>
+      <p class="hero-copy">
+        这里记录 AI Coding、工程系统、产品判断和长期协作里的可复用经验。
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="/posts/">阅读文章</a>
+        <a class="button secondary" href="/about/">了解我</a>
+      </div>
+    </div>
+    <img class="hero-avatar" src={SITE.avatar} alt="Hao Qian GitHub avatar" loading="eager" />
+  </section>
+
+  <section class="section-band">
+    <div class="section-heading">
+      <p class="eyebrow">Latest</p>
+      <h2>最近文章</h2>
+      <a href="/posts/">全部文章</a>
+    </div>
+    <div class="post-grid">
+      {latestPosts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+
+  <section class="section-band muted">
+    <div class="split-section">
+      <div>
+        <p class="eyebrow">System</p>
+        <h2>为持续写作准备的结构</h2>
+        <p>
+          文章用 MDX 管理，标签、归档、RSS、站点地图和搜索索引都在构建期生成。
+          新文章通过脚本创建模板，提交到 main 后由 GitHub Actions 发布。
+        </p>
+      </div>
+      <div class="signal-list" aria-label="博客能力">
+        <span>MDX 写作</span>
+        <span>全文搜索</span>
+        <span>RSS 订阅</span>
+        <span>自动发布</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="section-heading">
+      <p class="eyebrow">Tags</p>
+      <h2>主题入口</h2>
+      <a href="/tags/">全部标签</a>
+    </div>
+    <div class="tag-cloud">
+      {tags.map(({ tag, count, slug }) => (
+        <a href={`/tags/${slug}/`}>
+          <span>{tag}</span>
+          <small>{count}</small>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

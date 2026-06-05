@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+---
+
+<BaseLayout title="关于" description="关于 Hao Qian 和这个博客">
+  <section class="page-hero about-hero">
+    <img src={SITE.avatar} alt="Hao Qian GitHub avatar" loading="eager" />
+    <div>
+      <p class="eyebrow">About</p>
+      <h1>Hao Qian</h1>
+      <p>{SITE.subtitle}</p>
+    </div>
+  </section>
+
+  <section class="section-band">
+    <div class="narrow-copy">
+      <h2>我会在这里写什么</h2>
+      <p>
+        这个博客用于沉淀 AI Coding、工程系统设计、协作流程、产品判断和工具链实践。
+        目标不是发布零散动态，而是把做过的事情整理成后续自己和团队都能复用的材料。
+      </p>
+      <h2>写作原则</h2>
+      <p>
+        每篇文章优先保留问题背景、关键决策、证据和可执行结论。能被复盘、能被搜索、
+        能被下一次项目直接引用，是这个站点的基础标准。
+      </p>
+      <p><a class="inline-link" href={SITE.github}>在 GitHub 上找到我</a></p>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,43 +1,46 @@
-# Astro Starter Kit: Minimal
+# Hao Qian Blog
 
-```sh
-pnpm create astro@latest -- --template minimal
+个人博客主站，发布到 <https://qianhaoq.github.io>。
+
+## 写作
+
+```bash
+pnpm new:post "文章标题"
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+新文章会生成在 `src/content/posts/`，默认 `draft: true`。写完后把 `draft` 改为 `false` 或删除该字段，再提交到 `main`。
 
-## 🚀 Project Structure
+Frontmatter:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```yaml
+title: "标题"
+description: "摘要"
+pubDate: 2026-06-05
+updatedDate: 2026-06-05
+tags: ["AI Coding", "工程实践"]
+draft: false
+hero: "https://example.com/image.jpg"
+series: "系列名"
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 开发
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```bash
+pnpm install
+pnpm dev
+pnpm check
+pnpm build
+pnpm preview
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+`pnpm build` 会先执行 Astro 静态构建，再生成 Pagefind 搜索索引。搜索页需要在 `pnpm build && pnpm preview` 后验证。
 
-## 🧞 Commands
+## 发布
 
-All commands are run from the root of the project, from a terminal:
+仓库使用 GitHub Actions 发布到 GitHub Pages。推送 `main` 后会执行：
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+1. `withastro/action@v5` 安装依赖。
+2. `pnpm check && pnpm build`
+3. `actions/deploy-pages@v4`
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+GitHub Pages 配置应使用 workflow source，不使用 `gh-pages` 分支。

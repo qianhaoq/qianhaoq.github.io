@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllTags, getPublishedPosts } from '../../lib/posts';
+
+const tags = getAllTags(await getPublishedPosts());
+---
+
+<BaseLayout title="标签" description="按标签浏览 Hao Qian 的博客文章">
+  <section class="page-hero">
+    <p class="eyebrow">Topics</p>
+    <h1>标签</h1>
+    <p>从主题进入文章，比时间线更适合复盘一类问题。</p>
+  </section>
+
+  <section class="section-band">
+    <div class="tag-cloud large">
+      {tags.map(({ tag, count, slug }) => (
+        <a href={`/tags/${slug}/`}>
+          <span>{tag}</span>
+          <small>{count}</small>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
