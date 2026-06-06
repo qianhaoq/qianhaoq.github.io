@@ -8,6 +8,7 @@
 - 运行时是纯静态站点，不引入数据库、常驻服务端或需要后端权限的功能。
 - 项目有两个入口：公开读者入口是 GitHub Pages 静态站点；作者入口是本地仓库命令和文档，不发布成公开后台。
 - 写作内容优先服务 AI Coding、工程实践、产品思考和长期复盘。
+- 非纯内容 PR 使用 Linear 作为需求和验收来源；当前项目是 `AI-native qianhaoq.github.io 研发工作流`，团队是 `OneRepublic`，工作流说明见 `docs/ai-native-workflow.md`。
 
 ## 技术约束
 
@@ -61,6 +62,13 @@ PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续�
 
 涉及视觉和交互时，还要运行 `pnpm browser:smoke` 或用浏览器验证桌面和移动端关键页面，检查主题切换、搜索、文章目录和代码复制。
 
+## Linear 工作流
+
+- 开始非纯内容任务前，先读取对应 Linear issue 的目标、非目标、验收标准、风险和链接；没有 issue 时先创建或要求用户明确这是纯内容小改。
+- PR 标题或描述必须包含 Linear issue key，例如 `ONE-15`，以便 Linear GitHub integration 自动关联。
+- Linear 记录需求和状态，GitHub 记录代码、review、CI 和合并事实；不要把 Linear 当成合并门禁，也不要在公开站点里保存 Linear 或 GitHub token。
+- Agent 可以更新 Linear issue/comment 总结进展，但不得用 Linear 状态替代 `Quality Gate`、`AI Review Gate` 或人工合并判断。
+
 ## BDD 要求
 
 - 新增或修改用户可见行为时，先补或同步补 BDD 场景，再实现。
@@ -71,6 +79,7 @@ PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续�
 
 ## Review guidelines
 
+- 统一 review policy 见 `REVIEW.md`；Codex、Claude 和人工 review 都应优先遵守它。
 - 重要问题：会导致公开站点构建失败、草稿泄露、RSS/sitemap/search 暴露错误、GitHub Pages 发布失败、作者入口误发布为公开后台、token/secret 暴露、或 `pnpm quality` 门禁被绕过。
 - 重要问题：涉及用户可见行为但没有同步 BDD 场景，或改变内容 schema 但没有更新示例文章、写作脚本和文档。
 - 重要问题：新增公开路由写入仓库、保存 GitHub token、模拟登录态或引入常驻服务端；这违反 GitHub Pages 静态边界。

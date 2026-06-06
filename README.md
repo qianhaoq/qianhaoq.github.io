@@ -43,6 +43,17 @@ pnpm preview
 
 `pnpm build` 会先执行 Astro 静态构建，再生成 Pagefind 搜索索引。搜索页需要在 `pnpm build && pnpm preview` 后验证。
 
+## AI-native 工作流
+
+非纯内容 PR 使用 Linear 作为需求和验收来源，GitHub 作为代码、review、CI 和发布来源。
+
+- Linear project: `AI-native qianhaoq.github.io 研发工作流`
+- Linear team: `OneRepublic`
+- PR 必须在标题或描述中包含 Linear issue key，例如 `ONE-15`
+- 合并门禁是 GitHub required checks：`Quality Gate` 和 `AI Review Gate`
+
+完整说明见 `docs/ai-native-workflow.md`。
+
 ## 质量门禁
 
 ```bash
