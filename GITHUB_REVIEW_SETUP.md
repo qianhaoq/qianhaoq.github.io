@@ -6,6 +6,8 @@
 - `CLAUDE.md`: 指向 `AGENTS.md` 的软链接，供 Claude Code 读取项目上下文。
 - `REVIEW.md`: Claude Code Review 专用评审规则。
 - `.github/workflows/pr-quality.yml`: PR 质量门禁，检查名是 `Quality Gate`。
+- `.github/workflows/claude-review.yml`: Claude Code Review workflow。无论是否发现问题，都应在 PR 顶层写入 `## Claude Code Review` 总结评论。
+- `.github/workflows/ai-review-gate.yml`: AI 评审门禁。只有当前 PR head 同时存在 Codex PASS 和 Claude PASS 评论时才通过。
 
 ## 推荐 GitHub 仓库设置
 
@@ -13,7 +15,7 @@
 
 1. Settings -> Rules -> Rulesets 或 Branches -> Branch protection rules。
 2. 对 `main` 启用 pull request 后合并。
-3. Require status checks before merging，选择 `Quality Gate`。
+3. Require status checks before merging，选择 `Quality Gate` 和 `AI Review Gate`。
 4. Require conversation resolution before merging。
 5. Require linear history。
 6. 不允许 force push 和 branch deletion。
@@ -29,6 +31,8 @@
 ```
 
 需要自动评审时，在 Codex settings 中开启 Automatic reviews。
+
+Codex 通过信号来自 `chatgpt-codex-connector[bot]` 的 PR 顶层评论。`AI Review Gate` 会要求评论对应当前 PR head，并且包含无 major issues 的通过结论。
 
 ## Claude Code Review
 
@@ -46,4 +50,10 @@ Claude Code Review 是 GitHub App 侧能力。启用后，Claude 会读取 `CLAU
 ANTHROPIC_API_KEY
 ```
 
-然后按 Anthropic 官方示例添加 workflow。当前仓库优先使用托管 Code Review，不默认提交需要 secret 的 Action workflow，避免未配置 secret 时 PR CI 失败。
+当前 workflow 使用 OAuth token：
+
+```text
+CLAUDE_CODE_OAUTH_TOKEN
+```
+
+Claude 通过信号来自 workflow 发布的 `## Claude Code Review` 顶层评论，且必须包含当前 PR head 和 `Verdict: PASS`。
