@@ -6,9 +6,9 @@ import { existsSync, readFileSync } from 'node:fs';
 Given('the local authoring entry is available', function () {
   assert.ok(existsSync('AUTHORING.md'), 'Expected AUTHORING.md to document the writer entry.');
 
-  const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
-  assert.equal(packageJson.scripts.author, 'tsx scripts/author.ts');
-  assert.equal(packageJson.scripts.write, 'tsx scripts/write-post.ts');
+  this.packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+  assert.equal(this.packageJson.scripts.author, 'tsx scripts/author.ts');
+  assert.equal(this.packageJson.scripts.write, 'tsx scripts/write-post.ts');
 });
 
 When('I inspect the authoring contract', function () {
@@ -33,4 +33,21 @@ Then('new authoring posts default to private drafts', function () {
 
 Then('the public reader navigation stays separate from authoring tools', function () {
   assert.doesNotMatch(this.readerNavigation, /\/admin|\/author|写作后台|作者入口/);
+});
+
+When('I inspect the quality gate contract', function () {
+  assert.ok(this.packageJson?.scripts, 'Expected package.json scripts to be loaded.');
+  this.qualityScript = this.packageJson.scripts.quality;
+  this.lintScript = this.packageJson.scripts.lint;
+});
+
+Then('the default quality gate starts with lint', function () {
+  assert.equal(
+    this.qualityScript,
+    'pnpm lint && pnpm check && pnpm unit:gate && pnpm build && pnpm bdd'
+  );
+});
+
+Then('lint fails on warnings', function () {
+  assert.equal(this.lintScript, 'eslint . --max-warnings=0');
 });
