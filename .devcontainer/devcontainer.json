@@ -1,0 +1,24 @@
+{
+  "name": "qianhaoq-github-io",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    }
+  },
+  "onCreateCommand": "corepack enable && corepack prepare pnpm@10.12.1 --activate",
+  "updateContentCommand": "pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chrome",
+  "postCreateCommand": "node --version && pnpm --version",
+  "forwardPorts": [
+    4321
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "dbaeumer.vscode-eslint",
+        "GitHub.vscode-github-actions"
+      ]
+    }
+  }
+}
