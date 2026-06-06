@@ -40,9 +40,19 @@ jobs:
           claude_args: |
             --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["PASS","FAIL"]},"summary":{"type":"string"},"head_sha":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["CRITICAL","HIGH","MEDIUM","LOW"]},"file":{"type":"string"},"description":{"type":"string"},"verification":{"type":"string"}},"required":["severity","file","description","verification"],"additionalProperties":false}}},"required":["verdict","summary","head_sha","findings"],"additionalProperties":false}'
 
+      - id: cloud-code-review-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.CLOUD_CODE_REVIEW_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CLOUD_CODE_REVIEW_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-issues: write
+          permission-pull-requests: write
+
       - name: Post Claude review summary
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.cloud-code-review-token.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           CLAUDE_OUTPUT: ${{ steps.claude.outputs.structured_output }}
