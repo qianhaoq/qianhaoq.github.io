@@ -1,0 +1,63 @@
+name: AI Review Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  ai-review-gate:
+    name: AI Review Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require Codex and Claude passing reviews
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          short_sha="${HEAD_SHA:0:7}"
+          head_date="$(gh api "repos/${REPOSITORY}/commits/${HEAD_SHA}" --jq '.commit.committer.date')"
+
+          for attempt in $(seq 1 45); do
+            comments="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate)"
+
+            codex_pass_count="$(jq \
+              --arg sha "${HEAD_SHA}" \
+              --arg short "${short_sha}" \
+              --arg date "${head_date}" \
+              '[.[] | select(.user.login == "chatgpt-codex-connector[bot]")
+                | select(.body | contains("Codex Review"))
+                | select((.body | contains($sha)) or (.body | contains($short)) or (.created_at >= $date))
+                | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")))
+              ] | length' <<< "${comments}")"
+
+            claude_pass_count="$(jq \
+              --arg sha "${HEAD_SHA}" \
+              '[.[] | select((.user.login == "github-actions[bot]") or (.user.login == "claude[bot]"))
+                | select(.body | contains("## Claude Code Review"))
+                | select(.body | contains($sha))
+                | select(.body | contains("Verdict: PASS"))
+              ] | length' <<< "${comments}")"
+
+            echo "Attempt ${attempt}: codex_pass=${codex_pass_count}, claude_pass=${claude_pass_count}"
+
+            if [ "${codex_pass_count}" -gt 0 ] && [ "${claude_pass_count}" -gt 0 ]; then
+              echo "Codex and Claude have both passed review for ${HEAD_SHA}."
+              exit 0
+            fi
+
+            sleep 20
+          done
+
+          echo "::error::Missing passing Codex and Claude reviews for current PR head ${HEAD_SHA}."
+          echo "::error::Need a Codex review comment with no major issues and a Claude Code Review comment with Verdict: PASS."
+          exit 1
