@@ -30,34 +30,36 @@ jobs:
           for attempt in $(seq 1 45); do
             comments="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate)"
 
+            # codex-bot alias: the actual GitHub author is OpenAI's app.
             codex_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
               --arg short "${short_sha}" \
               --arg date "${head_date}" \
-              '[.[] | select(.user.login == "chatgpt-codex-connector[bot]")
+              '[.[] | select((.user.login == "chatgpt-codex-connector[bot]") or (.user.login == "codex-bot[bot]"))
                 | select(.body | contains("Codex Review"))
                 | select((.body | contains($sha)) or (.body | contains($short)) or (.created_at >= $date))
                 | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")))
               ] | length' <<< "${comments}")"
 
+            # claude-bot alias: keep legacy authors accepted during identity migration.
             claude_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
-              '[.[] | select((.user.login == "cloud-code-review[bot]") or (.user.login == "github-actions[bot]") or (.user.login == "claude[bot]"))
+              '[.[] | select((.user.login == "claude-bot[bot]") or (.user.login == "cloud-code-review[bot]") or (.user.login == "github-actions[bot]") or (.user.login == "claude[bot]"))
                 | select(.body | contains("## Claude Code Review"))
                 | select(.body | contains($sha))
                 | select(.body | contains("Verdict: PASS"))
               ] | length' <<< "${comments}")"
 
-            echo "Attempt ${attempt}: codex_pass=${codex_pass_count}, claude_pass=${claude_pass_count}"
+            echo "Attempt ${attempt}: codex-bot_pass=${codex_pass_count}, claude-bot_pass=${claude_pass_count}"
 
             if [ "${codex_pass_count}" -gt 0 ] && [ "${claude_pass_count}" -gt 0 ]; then
-              echo "Codex and Claude have both passed review for ${HEAD_SHA}."
+              echo "codex-bot and claude-bot have both passed review for ${HEAD_SHA}."
               exit 0
             fi
 
             sleep 20
           done
 
-          echo "::error::Missing passing Codex and Claude reviews for current PR head ${HEAD_SHA}."
-          echo "::error::Need a Codex review comment with no major issues and a Claude Code Review comment with Verdict: PASS."
+          echo "::error::Missing passing codex-bot and claude-bot reviews for current PR head ${HEAD_SHA}."
+          echo "::error::Need a codex-bot review comment with no major issues and a claude-bot review comment with Verdict: PASS."
           exit 1
