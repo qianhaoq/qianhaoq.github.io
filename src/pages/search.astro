@@ -23,6 +23,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const status = document.querySelector<HTMLElement>('#search-status');
     const results = document.querySelector<HTMLElement>('#search-results');
 
+    type PagefindSearchItem = {
+      url: string;
+      meta: { title?: string };
+      excerpt: string;
+    };
+
+    type PagefindSearchResult = {
+      data: () => Promise<PagefindSearchItem>;
+    };
+
+    type PagefindModule = {
+      options: (options: { excerptLength: number }) => Promise<void> | void;
+      search: (query: string) => Promise<{ results: PagefindSearchResult[] }>;
+    };
+
     const escapeHtml = (value: string) =>
       value.replace(/[&<>"']/g, (char) => ({
         '&': '&amp;',
@@ -32,7 +47,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         "'": '&#39;'
       })[char] ?? char);
 
-    const renderResults = (items: Array<{ url: string; meta: { title?: string }; excerpt: string }>) => {
+    const renderResults = (items: PagefindSearchItem[]) => {
       if (!results || !status) return;
       if (items.length === 0) {
         status.textContent = '没有找到匹配文章。';
@@ -51,7 +66,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const bootSearch = async () => {
       if (!input || !status) return;
       try {
-        const loadPagefind = new Function('return import("/pagefind/pagefind.js")') as () => Promise<any>;
+        const loadPagefind = new Function('return import("/pagefind/pagefind.js")') as () => Promise<PagefindModule>;
         const pagefind = await loadPagefind();
         await pagefind.options({ excerptLength: 28 });
         status.textContent = '搜索已就绪。';
@@ -63,7 +78,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             return;
           }
           const search = await pagefind.search(query);
-          const data = await Promise.all(search.results.slice(0, 12).map((result: any) => result.data()));
+          const data = await Promise.all(search.results.slice(0, 12).map((result) => result.data()));
           renderResults(data);
         });
       } catch {

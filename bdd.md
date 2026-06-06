@@ -28,9 +28,10 @@ pnpm quality
 
 该命令顺序执行：
 
-1. `pnpm check`
-2. `pnpm unit:gate`
-3. `pnpm build`
-4. `pnpm bdd`
+1. `pnpm lint`
+2. `pnpm check`
+3. `pnpm unit:gate`
+4. `pnpm build`
+5. `pnpm bdd`
 
 `pnpm bdd` 必须在 `pnpm build` 后执行；如果 `dist/` 不存在，BDD 应直接失败。
