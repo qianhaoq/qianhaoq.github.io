@@ -1,0 +1,28 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            请用中文 review 这个 PR，重点关注：
+            - 是否会导致公开站点构建失败或草稿泄露
+            - RSS/sitemap/search 是否暴露了草稿或错误内容
+            - 用户可见行为改动是否同步了 BDD 场景
+            - 是否违反 GitHub Pages 纯静态边界（新增后台路由、保存 token、模拟登录态）
+            给出具体文件路径和可复现的验证方式。
