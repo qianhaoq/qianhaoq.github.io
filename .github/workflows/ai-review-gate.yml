@@ -2,7 +2,7 @@ name: AI Review Gate
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 
 permissions:
   contents: read
@@ -29,6 +29,15 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           path: trusted-base
           persist-credentials: false
+
+      - name: Require Linear PR metadata
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_METADATA_EVENT_NAME: pull_request
+        run: |
+          set -euo pipefail
+          node trusted-base/scripts/check-pr-metadata.mjs
 
       - name: Require Codex and Claude passing reviews
         env:

@@ -64,10 +64,13 @@ PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续�
 
 ## Linear 工作流
 
-- 开始非纯内容任务前，先读取对应 Linear issue 的目标、非目标、验收标准、风险和链接；没有 issue 时先创建或要求用户明确这是纯内容小改。
+- 开始任务前，先读取对应 Linear issue 的目标、非目标、验收标准、风险和链接；纯本地草稿可以先写作，但进入 protected `main` 的 PR 仍必须关联 issue。
 - PR 标题或描述必须包含 Linear issue key，例如 `ONE-15`，以便 Linear GitHub integration 自动关联。
 - Linear 记录需求和状态，GitHub 记录代码、review、CI 和合并事实；不要把 Linear 当成合并门禁，也不要在公开站点里保存 Linear 或 GitHub token。
 - Agent 可以更新 Linear issue/comment 总结进展，但不得用 Linear 状态替代 `Quality Gate`、`AI Review Gate` 或人工合并判断。
+- Agent 接到 `ai-agent-ready` issue 后，先按 `docs/agent-playbooks.md` 选择任务 playbook；不满足 owner、验收标准、area/risk 和修改范围条件时，先在 Linear 评论缺口，不直接开 PR。
+- Slack/Linear Asks 来源的 issue 默认只进 `Triage`；完成去重、补验收、标记风险和明确 owner 后，才允许推进到 `待 Agent 处理`。
+- PR 描述的 Linear issue key 和 `## Acceptance` 由 `scripts/check-pr-metadata.mjs` 检查；`quality:pr` 提供快速反馈，`AI Review Gate` 从默认分支 trusted checkout 执行硬门禁，不能保留模板占位内容。
 
 ## BDD 要求
 

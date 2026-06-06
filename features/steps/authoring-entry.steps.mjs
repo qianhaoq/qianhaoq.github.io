@@ -53,6 +53,6 @@ Then('lint fails on warnings', function () {
   assert.equal(this.lintScript, 'eslint . --max-warnings=0');
 });
 
-Then('the PR quality gate includes browser smoke', function () {
-  assert.equal(this.prQualityScript, 'pnpm quality && pnpm browser:smoke');
+Then('the PR quality gate checks metadata before browser smoke', function () {
+  assert.equal(this.prQualityScript, 'pnpm pr:metadata && pnpm quality && pnpm browser:smoke');
 });

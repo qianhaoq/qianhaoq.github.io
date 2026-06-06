@@ -1,6 +1,6 @@
 ## Linear
 
-- Issue: ONE-
+- Issue: <LINEAR-ISSUE-KEY>
 - Project: AI-native qianhaoq.github.io 研发工作流
 
 ## Summary
@@ -9,7 +9,8 @@
 
 ## Acceptance
 
--
+- <ACCEPTANCE-CRITERION-1>
+- <ACCEPTANCE-CRITERION-2>
 
 ## BDD / Tests
 

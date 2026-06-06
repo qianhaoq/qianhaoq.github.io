@@ -18,7 +18,7 @@
 ## 推荐状态流
 
 ```text
-Backlog -> 待 Agent 处理 -> Agent 执行中 -> AI 评审 -> 人工评审 -> 预览验证 -> 待合并 -> Done
+Triage -> Backlog -> 待 Agent 处理 -> Agent 执行中 -> AI 评审 -> 人工评审 -> 预览验证 -> 待合并 -> Done
 ```
 
 当前 `OneRepublic` 团队已经有这些状态。关键是每个 issue 都要能回答三件事：
@@ -27,9 +27,11 @@ Backlog -> 待 Agent 处理 -> Agent 执行中 -> AI 评审 -> 人工评审 -> �
 2. 做到什么程度算完成。
 3. 哪些验证必须通过。
 
+Slack 或 Linear Asks 进入的需求默认停在 `Triage`。人类 owner 需要完成去重、补验收、标 area/risk、判断是否 `ai-agent-ready`，再推进到 `待 Agent 处理`。重复需求保留 canonical issue，另一个 issue 评论说明并关闭或取消。
+
 ## Issue 模板
 
-每个非纯内容 PR 应关联一个 Linear issue。内容类小文章可以直接走写作流程；但涉及站点行为、发布、作者入口、CI、review gate、样式系统或信息架构时，必须先有 issue。
+每个进入 protected `main` 的 PR 都应关联一个 Linear issue。内容类小文章可以先走本地写作流程生成草稿；但一旦通过 PR 合入主站，也需要 issue key 和验收标准，确保发布记录可追溯。
 
 ```md
 ## 目标
@@ -64,6 +66,8 @@ Backlog -> 待 Agent 处理 -> Agent 执行中 -> AI 评审 -> 人工评审 -> �
 
 PR 标题或描述必须包含 Linear issue key，例如 `ONE-15`。这样 Linear 的 GitHub integration 可以把 issue 与 PR 关联起来，GitHub Actions 和 review 结果仍留在 GitHub 作为事实源。
 
+`quality:pr` 会运行 `scripts/check-pr-metadata.mjs`，在 CI 或已有本地 PR 分支上提供快速反馈。`AI Review Gate` 会从默认分支的 `trusted-base` checkout 再执行同一 metadata gate，作为不可被 PR head 改写的硬门禁。没有真实 Linear issue key，或 `## Acceptance` 仍是占位内容时，PR 不能合并。
+
 PR 合并条件：
 
 1. `Quality Gate` 通过。
@@ -71,6 +75,7 @@ PR 合并条件：
 3. 用户可见行为已同步 BDD。
 4. 人类确认需求仍然成立。
 5. 没有草稿、secret、后台路由或 GitHub Pages 静态边界风险。
+6. Solo personal repo 默认不把 required approval 作为硬门禁；需要协作者参与时，可以临时开启或要求至少一个人工 PR review。
 
 ## AI Review 策略
 
@@ -95,15 +100,36 @@ PR 合并条件：
    - PR closed without merge：回到 Backlog 或 Canceled。
 3. 不开启 GitHub Issues 双向同步，除非你决定把 GitHub Issues 也作为公开反馈入口。
 
+当前 public repo 的 Linear public linkback 应保持关闭，除非先关闭 “include issue descriptions” 一类会把 Linear 描述同步到公开 GitHub 页面上的选项。
+
+## Slack Intake 规则
+
+Slack 负责收集上下文，不负责长期管理需求。推荐规则：
+
+1. 所有 Slack Ask 默认进入 `Triage`。
+2. 保留 Slack thread 链接和原始上下文摘要。
+3. 只有补齐 owner、目标、非目标、验收标准、area/risk、dedupe 判断后，才进入 `Backlog` 或 `待 Agent 处理`。
+4. 所有 public channel 都接入时，每天至少做一次 triage digest，清掉重复、无 owner、无验收标准的 issue。
+
+## Preview 验证与自动推进
+
+`预览验证` 是人类产品验证状态，不是 AI review 状态。
+
+- 预览验证通过：Linear issue 进入 `待合并`，PR 等待 human review 和 required checks。
+- 预览验证失败：Linear issue 回到 `处理中` 或 `待 Agent 处理`，AI 必须回写失败摘要、复现步骤和下一步建议。
+- PR merge 到 `main` 后：Linear GitHub integration 自动推进到 `Done`。
+- PR closed without merge：保留原因，回到 `Backlog` 或 `Canceled`。
+
 ## Agent 工作方式
 
 1. 从 Linear issue 读取目标、非目标和验收标准。
 2. 从仓库文档读取技术边界：`AGENTS.md`、`bdd.md`、`REVIEW.md`、`arch.md`。
-3. 新建独立分支实现。
-4. 如果改动用户可见行为，先补 BDD 场景或同步补场景。
-5. 本地运行最小必要验证；代码或 workflow 变更优先运行 `pnpm quality:pr`。
-6. 创建 PR，描述里包含 Linear issue key、验证结果和 review 触发方式。
-7. 等待 GitHub required checks，而不是手动绕过门禁。
+3. 按 `docs/agent-playbooks.md` 选择对应 playbook。
+4. 新建独立分支实现。
+5. 如果改动用户可见行为，先补 BDD 场景或同步补场景。
+6. 本地运行最小必要验证；代码或 workflow 变更优先运行 `pnpm quality:pr`。
+7. 创建 PR，描述里包含 Linear issue key、验收标准、验证结果和 review 触发方式。
+8. 等待 GitHub required checks，而不是手动绕过门禁。
 
 ## 当前 Linear 项目
 

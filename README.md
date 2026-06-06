@@ -45,12 +45,14 @@ pnpm preview
 
 ## AI-native 工作流
 
-非纯内容 PR 使用 Linear 作为需求和验收来源，GitHub 作为代码、review、CI 和发布来源。
+进入 protected `main` 的 PR 使用 Linear 作为需求和验收来源，GitHub 作为代码、review、CI 和发布来源。
 
 - Linear project: `AI-native qianhaoq.github.io 研发工作流`
 - Linear team: `OneRepublic`
 - PR 必须在标题或描述中包含 Linear issue key，例如 `ONE-15`
-- 合并门禁是 GitHub required checks：`Quality Gate` 和 `AI Review Gate`
+- PR 描述必须补齐 `## Acceptance`，不能保留模板占位内容；`quality:pr` 会在 CI 或已有本地 PR 分支上快速检查，`AI Review Gate` 会从默认分支 trusted checkout 执行硬门禁
+- Agent 执行前按 `docs/agent-playbooks.md` 匹配任务 playbook，Slack/Linear Asks 来源需求先停在 `Triage` 做去重和补验收
+- 合并硬门禁是 GitHub required checks：`Quality Gate` 和 `AI Review Gate`；solo personal repo 默认不要求 required approval
 
 完整说明见 `docs/ai-native-workflow.md`。
 
