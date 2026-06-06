@@ -7,9 +7,9 @@
 - `REVIEW.md`: Claude Code Review 专用评审规则。
 - `.github/workflows/pr-quality.yml`: PR 质量门禁，检查名是 `Quality Gate`。
 - `.github/workflows/claude-review.yml`: Claude Code Review workflow。无论是否发现问题，都应在 PR 顶层写入 `## Claude Code Review` 总结评论。
-- `.github/workflows/ai-review-gate.yml`: AI 评审门禁。只有当前 PR head 同时存在 Codex PASS 和 Claude PASS 证据时才通过，并会更新 Devflow Metrics 评论。
+- `.github/workflows/ai-review-gate.yml`: AI 评审门禁。只有当前 PR head 同时存在 Codex PASS 和 Claude PASS 证据时才通过；门禁脚本从默认分支 checkout 的 `trusted-base` 执行，避免运行 PR head 中被篡改的脚本。
 - `scripts/ai-review-gate.mjs`: 结构化汇总 Codex issue comment、PR review、trigger reaction 和 Claude PASS 评论。
-- `scripts/devflow-metrics.mjs`: 记录 PR age、check duration 和 bot review latency。
+- `scripts/devflow-metrics.mjs`: 记录 PR age、Quality Gate duration 和 bot review latency；指标评论失败不会阻塞 AI Review Gate。
 
 ## 推荐 GitHub 仓库设置
 
@@ -35,7 +35,7 @@
 需要自动评审时，在 Codex settings 中开启 Automatic reviews。
 
 仓库内把 Codex reviewer 记作 `codex-bot`。真实 GitHub 评论作者仍是 OpenAI 的 `chatgpt-codex-connector[bot]`，这个 GitHub App 名称不能由本仓库改名。`AI Review Gate` 会要求评论对应当前 PR head，并且包含 no major issues 的通过结论。
-如果 Codex 以 PR review 或 `@codex review` 的 thumbs-up reaction 表示通过，`scripts/ai-review-gate.mjs` 也会纳入判断。
+如果 Codex 以 PR review 或 `@codex review ...` 的 thumbs-up reaction 表示通过，`scripts/ai-review-gate.mjs` 也会纳入判断；PR review 必须绑定当前 `commit_id` 或正文包含当前 head SHA。
 
 ## Claude Code Review
 

@@ -77,7 +77,7 @@ PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续�
 - Nit：纯文案、样式微调或命名建议，除非它会误导发布、写作或评审流程。
 - 不要报告 CI 已强制覆盖的普通格式问题；优先报告 CI 没法判断的发布契约、内容可见性、权限边界和文档/行为不一致。
 - 每条行为类发现都应给出具体文件路径和可复现的验证方式。
-- AI review gate 逻辑集中在 `scripts/ai-review-gate.mjs`，修改 Codex/Claude 评审门禁时必须同步更新对应单测。
+- AI review gate 逻辑集中在 `scripts/ai-review-gate.mjs`，workflow 必须从默认分支的可信 checkout 执行该脚本，不要执行 PR head 中的门禁代码；修改 Codex/Claude 评审门禁时必须同步更新对应单测。
 
 ## 提交规范
 

@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { summarizeAiReviews } from './ai-review-gate.mjs';
+import { isCodexReviewTrigger, summarizeAiReviews } from './ai-review-gate.mjs';
 
 export const METRICS_MARKER = '<!-- devflow-metrics -->';
 
@@ -40,12 +40,7 @@ export const buildDevflowMetrics = ({ pullRequest, checkRuns, issueComments, pul
     { headSha, headDate }
   );
 
-  const codexTime = earliestDate([
-    aiSummary.codex.evidence?.createdAt,
-    ...pullReviews
-      .filter((review) => review.user?.login === 'chatgpt-codex-connector[bot]')
-      .map((review) => review.submitted_at)
-  ]);
+  const codexTime = earliestDate([aiSummary.codex.evidence?.createdAt]);
   const claudeTime = aiSummary.claude.evidence?.createdAt;
 
   return {
@@ -56,7 +51,6 @@ export const buildDevflowMetrics = ({ pullRequest, checkRuns, issueComments, pul
     codexReviewLatency: codexTime ? formatDuration(headDate, codexTime) : 'pending',
     claudeReviewLatency: claudeTime ? formatDuration(headDate, claudeTime) : 'pending',
     qualityGateDuration: getCheckDuration(checkRuns, 'Quality Gate'),
-    aiReviewGateDuration: getCheckDuration(checkRuns, 'AI Review Gate'),
     deployDuration: getCheckDuration(checkRuns, 'deploy'),
     codexPassed: aiSummary.codex.passed,
     claudePassed: aiSummary.claude.passed
@@ -73,7 +67,6 @@ export const renderMetricsComment = (metrics) => `${METRICS_MARKER}
 | PR age | ${metrics.prAge} |
 | Latest-head lead time | ${metrics.timeSinceHead} |
 | Quality Gate duration | ${metrics.qualityGateDuration} |
-| AI Review Gate duration | ${metrics.aiReviewGateDuration} |
 | Codex review latency | ${metrics.codexReviewLatency} |
 | Claude review latency | ${metrics.claudeReviewLatency} |
 | Codex passed | ${metrics.codexPassed ? 'yes' : 'no'} |
@@ -123,7 +116,7 @@ const requiredEnv = (name) => {
 
 const collectTriggerReactions = async ({ token, repository, issueComments, headDate }) => {
   const triggerComments = issueComments.filter((comment) =>
-    comment.body?.trim().toLowerCase() === '@codex review' &&
+    isCodexReviewTrigger(comment.body ?? '') &&
     new Date(comment.created_at).getTime() >= new Date(headDate).getTime()
   );
 

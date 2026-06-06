@@ -38,14 +38,17 @@ const isClaudePassBody = (body, headSha) =>
   body.includes(`Head SHA: ${headSha}`) &&
   body.includes('Verdict: PASS');
 
-const isCodexReviewTrigger = (body) => body.trim().toLowerCase() === '@codex review';
+export const isCodexReviewTrigger = (body) => /^@codex\s+review\b/.test(body.trim().toLowerCase());
+
+const reviewTargetsCurrentHead = (review, body, headSha) =>
+  review.commit_id === headSha || bodyContainsCurrentHead(body, headSha);
 
 const getBody = (item) => item.body ?? '';
 
 /**
  * @typedef {{ login?: string }} GitHubUser
  * @typedef {{ id?: number, user?: GitHubUser, body?: string, created_at?: string }} IssueComment
- * @typedef {{ user?: GitHubUser, body?: string, submitted_at?: string }} PullReview
+ * @typedef {{ user?: GitHubUser, body?: string, submitted_at?: string, commit_id?: string }} PullReview
  * @typedef {{ user?: GitHubUser, content?: string, created_at?: string }} Reaction
  * @typedef {{ issueComments?: IssueComment[], pullReviews?: PullReview[], triggerReactions?: Reaction[] }} ReviewSnapshot
  * @typedef {{ headSha: string, headDate: string }} ReviewContext
@@ -65,7 +68,7 @@ export const summarizeAiReviews = ({ issueComments = [], pullReviews = [], trigg
   const codexReviewPass = pullReviews.find((review) =>
     CODEX_BOT_AUTHORS.has(review.user?.login) &&
     isCodexNoIssueBody(getBody(review)) &&
-    (bodyContainsCurrentHead(getBody(review), headSha) || isAtOrAfter(review.submitted_at, headDate))
+    reviewTargetsCurrentHead(review, getBody(review), headSha)
   );
 
   const codexReactionPass = triggerReactions.find((reaction) =>
@@ -85,7 +88,12 @@ export const summarizeAiReviews = ({ issueComments = [], pullReviews = [], trigg
       evidence: codexIssuePass
         ? { source: 'issue_comment', author: codexIssuePass.user.login, createdAt: codexIssuePass.created_at }
         : codexReviewPass
-          ? { source: 'pull_request_review', author: codexReviewPass.user.login, createdAt: codexReviewPass.submitted_at }
+          ? {
+              source: 'pull_request_review',
+              author: codexReviewPass.user.login,
+              createdAt: codexReviewPass.submitted_at,
+              commitId: codexReviewPass.commit_id
+            }
           : codexReactionPass
             ? { source: 'trigger_reaction', author: codexReactionPass.user.login, createdAt: codexReactionPass.created_at }
             : null

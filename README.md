@@ -71,4 +71,4 @@ BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 
 GitHub Pages 配置应使用 workflow source，不使用 `gh-pages` 分支。
 
-PR 的 AI review gate 使用 `scripts/ai-review-gate.mjs` 读取 Codex 和 Claude 的当前 HEAD 评审结果；通过后会用 `scripts/devflow-metrics.mjs` 更新 PR 里的 Devflow Metrics 评论。
+PR 的 AI review gate 使用默认分支可信 checkout 中的 `scripts/ai-review-gate.mjs` 读取 Codex 和 Claude 的当前 HEAD 评审结果；通过后会用 `scripts/devflow-metrics.mjs` 更新 PR 里的 Devflow Metrics 评论，评论失败不会阻塞合并门禁。

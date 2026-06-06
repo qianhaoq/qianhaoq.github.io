@@ -29,7 +29,7 @@ describe('devflow metrics contracts', () => {
         {
           name: 'AI Review Gate',
           started_at: '2026-06-06T10:14:13Z',
-          completed_at: '2026-06-06T10:19:41Z'
+          completed_at: null
         }
       ],
       issueComments: [
@@ -44,7 +44,14 @@ describe('devflow metrics contracts', () => {
           body: "Codex Review: Didn't find any major issues. Bravo."
         }
       ],
-      pullReviews: [],
+      pullReviews: [
+        {
+          user: { login: 'chatgpt-codex-connector[bot]' },
+          submitted_at: '2026-06-06T10:01:00Z',
+          commit_id: '0e303d1e08e0b30121f633e10598d0e07b4b876b',
+          body: "Codex Review: Didn't find any major issues."
+        }
+      ],
       triggerReactions: []
     });
 
@@ -52,7 +59,6 @@ describe('devflow metrics contracts', () => {
       headSha,
       state: 'open',
       qualityGateDuration: '30s',
-      aiReviewGateDuration: '5m 28s',
       codexReviewLatency: '5m 34s',
       claudeReviewLatency: '2m 45s',
       codexPassed: true,
