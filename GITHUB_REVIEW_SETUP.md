@@ -2,8 +2,8 @@
 
 这个仓库已经包含 PR review 所需的 repo-local 配置：
 
-- `AGENTS.md`: Codex 和通用 agent 指南，包含 `Review guidelines`。
-- `CLAUDE.md`: 指向 `AGENTS.md` 的软链接，供 Claude Code 读取项目上下文。
+- `AGENTS.md`: 唯一 agent 指南源文件，Codex 会自动读取，包含 `Review guidelines`。
+- `CLAUDE.md`: 指向 `AGENTS.md` 的软链接，供 Claude Code 自动读取同一份项目上下文。
 - `REVIEW.md`: Claude Code Review 专用评审规则。
 - `.github/workflows/pr-quality.yml`: PR 质量门禁，检查名是 `Quality Gate`。
 - `.github/workflows/claude-review.yml`: Claude Code Review workflow。无论是否发现问题，都应在 PR 顶层写入 `## Claude Code Review` 总结评论。

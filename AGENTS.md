@@ -15,7 +15,9 @@
 - 使用 Astro + TypeScript strict + MDX + Tailwind CSS。
 - 文章放在 `src/content/posts/*.mdx`，通过 `src/content.config.ts` 的 Astro content collection 校验 frontmatter。
 - 不在公开站点实现 `/admin`、登录态、GitHub token 写入或服务端发布按钮；写入仓库的能力只能放在本地脚本或 GitHub 仓库权限边界内。
-- `CLAUDE.md` 和 `agent.md` 是指向本文件的软链接；修改 agent 指南时只编辑 `AGENTS.md`。
+- `AGENTS.md` 是唯一 agent 指南源文件，供 Codex 自动读取。
+- `CLAUDE.md` 是指向 `AGENTS.md` 的软链接，供 Claude Code 自动读取同一份指南。
+- 不保留 `agent.md`、`claude.md` 等大小写变体；修改 agent 指南时只编辑 `AGENTS.md`。
 - BDD 约束写在 `bdd.md`；涉及用户可见行为时必须同步更新 `features/**/*.feature` 和 step definitions。
 
 ## 内容接口
