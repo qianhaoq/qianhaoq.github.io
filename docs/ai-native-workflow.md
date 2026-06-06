@@ -14,6 +14,7 @@
 | Claude | 独立 review，给出当前 head 的 PASS/FAIL evidence | 单独决定能否 merge |
 | Quality Gate | lint、typecheck、单测通过率、build、BDD、浏览器 smoke | 判断需求是否值得做 |
 | AI Review Gate | 汇总 Codex 与 Claude 的当前 head review evidence | 代替 reviewer 的判断过程 |
+| Deployment Verification | 在真实部署 URL 上验证发布结果 | 代替 PR 阶段的 BDD 和 review |
 
 ## 推荐状态流
 
@@ -72,10 +73,30 @@ PR 合并条件：
 
 1. `Quality Gate` 通过。
 2. `AI Review Gate` 通过。
-3. 用户可见行为已同步 BDD。
-4. 人类确认需求仍然成立。
-5. 没有草稿、secret、后台路由或 GitHub Pages 静态边界风险。
-6. Solo personal repo 默认不把 required approval 作为硬门禁；需要协作者参与时，可以临时开启或要求至少一个人工 PR review。
+3. 代码仓库或用户可见行为已同步 BDD，并在 PR 描述里贴出验证证据。
+4. 如存在 PR preview URL，已在真实 preview URL 上跑 smoke/BDD 验证。
+5. 人类确认需求仍然成立。
+6. 没有草稿、secret、后台路由或 GitHub Pages 静态边界风险。
+7. Solo personal repo 默认不把 required approval 作为硬门禁；需要协作者参与时，可以临时开启或要求至少一个人工 PR review。
+
+## 真实部署验证
+
+`pnpm quality:pr` 和 `pnpm browser:smoke` 证明 PR head 可以构建并在本地 preview 正常运行，但它们不等于真实部署验证。真实部署验证必须访问 GitHub 记录的 deployment URL 或 preview URL。
+
+当前仓库采用两层策略：
+
+1. PR 阶段：`Quality Gate` 必须运行 `pnpm bdd` 和浏览器 smoke。若未来接入 preview provider，PR 还必须新增 `Preview Deployment Verification` check，使用 preview URL 运行同一套 smoke/BDD。
+2. 合并后：`Deploy to GitHub Pages` 在 `actions/deploy-pages` 成功后输出 Pages URL，随后 `Deployment Verification` job 设置 `PLAYWRIGHT_BASE_URL` 指向真实 URL 并运行 `pnpm deploy:smoke`。
+
+PR preview 的可选方案：
+
+| 方案 | 适用场景 | 取舍 |
+| --- | --- | --- |
+| GitHub Pages + preview branch/action | 想尽量留在 GitHub 内部，接受 preview URL 公开 | 需要额外分支或第三方 action 管理 PR 子目录，不能覆盖当前 production Pages workflow |
+| Vercel / Netlify / Cloudflare Pages preview | 需要每个 PR 自动生成独立 URL 和 GitHub check | 配置成熟，但会新增外部部署系统、权限边界和环境变量管理 |
+| 只跑本地 artifact smoke | 只能作为快速反馈 | 不是真实部署验证，不能替代 preview 或 production URL 验证 |
+
+在没有 PR preview provider 前，`预览验证` 只能基于本地/CI 产物和 merge 后 production URL。若 production `Deployment Verification` 失败，应在 Linear 回写失败摘要、日志链接和复现步骤；必要时重新打开 issue 或创建 follow-up 修复。
 
 ## AI Review 策略
 
@@ -117,7 +138,8 @@ Slack 负责收集上下文，不负责长期管理需求。推荐规则：
 
 - 预览验证通过：Linear issue 进入 `待合并`，PR 等待 human review 和 required checks。
 - 预览验证失败：Linear issue 回到 `处理中` 或 `待 Agent 处理`，AI 必须回写失败摘要、复现步骤和下一步建议。
-- PR merge 到 `main` 后：Linear GitHub integration 自动推进到 `Done`。
+- PR merge 到 `main` 后：Linear GitHub integration 自动推进到 `Done`，GitHub Actions 继续执行 production `Deployment Verification`。
+- production `Deployment Verification` 失败：在 Linear 回写失败摘要、部署 URL、Actions 日志和下一步处理；需要修复时新建 follow-up issue 或重新打开原 issue。
 - PR closed without merge：保留原因，回到 `Backlog` 或 `Canceled`。
 
 ## Agent 工作方式
@@ -127,9 +149,10 @@ Slack 负责收集上下文，不负责长期管理需求。推荐规则：
 3. 按 `docs/agent-playbooks.md` 选择对应 playbook。
 4. 新建独立分支实现。
 5. 如果改动用户可见行为，先补 BDD 场景或同步补场景。
-6. 本地运行最小必要验证；代码或 workflow 变更优先运行 `pnpm quality:pr`。
+6. 本地运行最小必要验证；代码或 workflow 变更优先运行 `pnpm quality:pr`，并在 PR 描述里贴 BDD 证据。
 7. 创建 PR，描述里包含 Linear issue key、验收标准、验证结果和 review 触发方式。
-8. 等待 GitHub required checks，而不是手动绕过门禁。
+8. 如有 preview URL，在真实 preview URL 上运行 smoke/BDD 并贴证据。
+9. 等待 GitHub required checks 和部署验证，而不是手动绕过门禁。
 
 ## 当前 Linear 项目
 

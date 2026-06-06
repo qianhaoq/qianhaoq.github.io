@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const useSystemChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME !== '0';
+const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+const localBaseURL = 'http://127.0.0.1:4322';
 
 export default defineConfig({
   testDir: 'tests/browser',
@@ -15,13 +17,13 @@ export default defineConfig({
     ['html', { outputFolder: '.test-results/playwright-report', open: 'never' }]
   ],
   use: {
-    baseURL: 'http://127.0.0.1:4322',
+    baseURL: externalBaseURL ?? localBaseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'
   },
-  webServer: {
+  webServer: externalBaseURL ? undefined : {
     command: 'pnpm exec astro preview --host 127.0.0.1 --port 4322',
-    url: 'http://127.0.0.1:4322',
+    url: localBaseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000
   },

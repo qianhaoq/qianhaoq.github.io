@@ -38,6 +38,7 @@ pnpm install
 pnpm dev
 pnpm quality
 pnpm quality:pr
+PLAYWRIGHT_BASE_URL=https://qianhaoq.github.io pnpm deploy:smoke
 pnpm preview
 ```
 
@@ -51,6 +52,8 @@ pnpm preview
 - Linear team: `OneRepublic`
 - PR 必须在标题或描述中包含 Linear issue key，例如 `ONE-15`
 - PR 描述必须补齐 `## Acceptance`，不能保留模板占位内容；`quality:pr` 会在 CI 或已有本地 PR 分支上快速检查，`AI Review Gate` 会从默认分支 trusted checkout 执行硬门禁
+- 代码仓库或用户可见行为改动必须有 BDD 证据；当前仓库的 `Quality Gate` 会运行 `pnpm bdd`
+- GitHub Pages 发布后必须通过真实 URL 的 `Deployment Verification`
 - Agent 执行前按 `docs/agent-playbooks.md` 匹配任务 playbook，Slack/Linear Asks 来源需求先停在 `Triage` 做去重和补验收
 - 合并硬门禁是 GitHub required checks：`Quality Gate` 和 `AI Review Gate`；solo personal repo 默认不要求 required approval
 
@@ -72,6 +75,8 @@ pnpm quality
 
 PR 默认检查运行 `pnpm quality:pr`，会额外执行 `pnpm browser:smoke`，用 Playwright 覆盖首页、文章页、搜索、主题切换、代码复制和移动端首屏。
 
+发布后检查运行 `pnpm deploy:smoke`，通过 `PLAYWRIGHT_BASE_URL` 指向真实 GitHub Pages URL，不启动本地 preview server。
+
 BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 
 ## 发布
@@ -81,6 +86,7 @@ BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 1. `withastro/action@v5` 安装依赖。
 2. `pnpm quality`
 3. `actions/deploy-pages@v4`
+4. `Deployment Verification`，在真实 Pages URL 上运行 `pnpm deploy:smoke`
 
 GitHub Pages 配置应使用 workflow source，不使用 `gh-pages` 分支。
 
