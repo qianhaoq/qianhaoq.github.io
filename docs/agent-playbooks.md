@@ -11,6 +11,7 @@ Agent 只能处理满足以下条件的 issue：
 - 已标记 `ai-agent-ready`，并明确 area/risk 标签。
 - 涉及安全、发布、公开入口或工作流门禁时，必须保留 `needs-human-review`。
 - 明确允许修改的范围和必须运行的验证命令。
+- 代码仓库或用户可见行为改动必须说明 BDD 场景和验证证据。
 
 不满足条件时，先在 Linear 评论缺口，不要直接开 PR。
 
@@ -40,7 +41,7 @@ Agent 只能处理满足以下条件的 issue：
 1. 先补或同步 `features/**/*.feature` 与 step definitions。
 2. 保持 GitHub Pages 纯静态边界，只在本地脚本或构建期写入。
 3. 运行 `pnpm quality:pr`；涉及视觉时补浏览器 smoke 证据。
-4. PR 描述列出用户可见变化和桌面/移动端验证结果。
+4. PR 描述列出用户可见变化、BDD 场景、桌面/移动端验证结果。
 
 禁止：
 
@@ -56,8 +57,9 @@ Agent 只能处理满足以下条件的 issue：
 1. 先读 `REVIEW.md`、`GITHUB_REVIEW_SETUP.md`、`scripts/ai-review-gate.mjs` 和相关单测。
 2. 修改 gate 逻辑时同步更新 `tests/unit/*`。
 3. 使用可信默认分支 checkout 执行 gate 脚本，不执行 PR head 中的门禁代码。
-4. 运行 `pnpm unit` 和 `pnpm quality:pr`；`AI Review Gate` 中的 metadata gate 必须从默认分支 `trusted-base` 执行，若完整门禁不可用，说明缺口。
-5. PR 描述必须包含 Linear issue key、风险说明、回滚方式。
+4. 发布 workflow 改动必须说明 PR preview 或 production deployment verification 如何保留真实 URL 证据。
+5. 运行 `pnpm unit` 和 `pnpm quality:pr`；`AI Review Gate` 中的 metadata gate 必须从默认分支 `trusted-base` 执行，若完整门禁不可用，说明缺口。
+6. PR 描述必须包含 Linear issue key、BDD/部署验证证据、风险说明、回滚方式。
 
 禁止：
 
@@ -75,7 +77,8 @@ Agent 只能处理满足以下条件的 issue：
 2. 代码或文档改动必须让 PR 能被 GitHub/Linear 自动关联。
 3. Slack-originated issue 只能从 `Triage` 开始；补齐 owner、acceptance、area/risk、dedupe 判断后才能进 `待 Agent 处理`。
 4. Preview 验证通过后进 `待合并`；验证失败回 `处理中` 或 `待 Agent 处理`，并要求失败摘要。
-5. 关闭重复 issue 时，保留 canonical issue 链接和处理原因。
+5. PR preview 或 production deployment verification 失败时，回写 Linear 失败摘要、部署 URL、Actions 日志和下一步。
+6. 关闭重复 issue 时，保留 canonical issue 链接和处理原因。
 
 禁止：
 

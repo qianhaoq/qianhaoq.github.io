@@ -58,6 +58,8 @@ pnpm quality
 
 PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续执行 `pnpm browser:smoke`，用 Playwright 验证关键读者路径和交互。
 
+发布后检查运行 `pnpm deploy:smoke`，通过 `PLAYWRIGHT_BASE_URL` 指向真实 GitHub Pages URL，不启动本地 preview server。
+
 只改纯文档且不影响公开页面、写作流程、发布流程或测试约束时，可以只运行相关的最小检查；最终报告必须说明跳过 `pnpm quality` 的原因。
 
 涉及视觉和交互时，还要运行 `pnpm browser:smoke` 或用浏览器验证桌面和移动端关键页面，检查主题切换、搜索、文章目录和代码复制。
@@ -71,10 +73,12 @@ PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续�
 - Agent 接到 `ai-agent-ready` issue 后，先按 `docs/agent-playbooks.md` 选择任务 playbook；不满足 owner、验收标准、area/risk 和修改范围条件时，先在 Linear 评论缺口，不直接开 PR。
 - Slack/Linear Asks 来源的 issue 默认只进 `Triage`；完成去重、补验收、标记风险和明确 owner 后，才允许推进到 `待 Agent 处理`。
 - PR 描述的 Linear issue key 和 `## Acceptance` 由 `scripts/check-pr-metadata.mjs` 检查；`quality:pr` 提供快速反馈，`AI Review Gate` 从默认分支 trusted checkout 执行硬门禁，不能保留模板占位内容。
+- GitHub Pages 发布完成后必须通过真实 URL 的 `Deployment Verification`；失败时回写 Linear 并创建 follow-up 或回退。
 
 ## BDD 要求
 
 - 新增或修改用户可见行为时，先补或同步补 BDD 场景，再实现。
+- 代码仓库改动必须在 PR 描述里给出 BDD 证据；确实不涉及行为时要说明原因。
 - BDD 场景描述业务行为，不描述组件内部实现。
 - `pnpm bdd` 必须在 `pnpm build` 后执行，因为它读取 `dist/` 产物。
 - 草稿隔离、已发布文章可发现、RSS、sitemap、搜索索引等发布契约必须保持 BDD 覆盖。

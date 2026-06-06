@@ -16,6 +16,7 @@
     "bdd": "cucumber-js --config cucumber.mjs",
     "quality": "pnpm lint && pnpm check && pnpm unit:gate && pnpm build && pnpm bdd",
     "browser:smoke": "playwright test --config playwright.config.ts",
+    "deploy:smoke": "node -e \"if (!process.env.PLAYWRIGHT_BASE_URL) { console.error('PLAYWRIGHT_BASE_URL is required for deploy:smoke'); process.exit(1); }\" && playwright test --config playwright.config.ts",
     "pr:metadata": "node scripts/check-pr-metadata.mjs",
     "quality:pr": "pnpm pr:metadata && pnpm quality && pnpm browser:smoke",
     "author": "tsx scripts/author.ts",
