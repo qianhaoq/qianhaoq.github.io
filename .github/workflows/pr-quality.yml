@@ -2,7 +2,7 @@ name: PR Quality
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   merge_group:
 
 permissions:
@@ -33,6 +33,13 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Check Linear PR metadata
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_METADATA_EVENT_NAME: ${{ github.event_name }}
+        run: pnpm pr:metadata
       - name: Ensure Chrome for browser smoke
         run: |
           if ! command -v google-chrome >/dev/null 2>&1; then

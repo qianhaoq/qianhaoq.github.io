@@ -1,0 +1,147 @@
+import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import {
+  extractMarkdownSection,
+  findLinearIssueKeys,
+  hasLinearIssueKey,
+  hasMeaningfulAcceptance,
+  readPullRequestMetadataFromGitHubCli,
+  validatePrMetadata
+} from '../../scripts/check-pr-metadata.mjs';
+
+const validBody = `## Linear
+
+- Issue: ONE-16
+- Project: AI-native qianhaoq.github.io 研发工作流
+
+## Summary
+
+- Harden PR metadata checks.
+
+## Acceptance
+
+- PRs without a Linear issue key fail the Quality Gate before merge.
+- PRs with placeholder acceptance criteria fail the Quality Gate.
+
+## BDD / Tests
+
+- [x] pnpm unit`;
+
+describe('PR metadata gate contracts', () => {
+  it('extracts markdown sections by heading', () => {
+    expect(extractMarkdownSection(validBody, 'Acceptance')).toContain('placeholder acceptance');
+    expect(extractMarkdownSection(validBody, 'Missing')).toBe('');
+  });
+
+  it('accepts PR metadata with a Linear key and real acceptance criteria', () => {
+    expect(hasLinearIssueKey({ title: 'ONE-16 Harden workflow gate', body: validBody })).toBe(true);
+    expect(findLinearIssueKeys({ title: 'ONE-16 Harden workflow gate', body: validBody })).toContain('ONE-16');
+    expect(hasMeaningfulAcceptance(validBody)).toBe(true);
+    expect(validatePrMetadata({ title: 'ONE-16 Harden workflow gate', body: validBody })).toMatchObject({
+      passed: true,
+      errors: []
+    });
+  });
+
+  it('rejects the default Linear issue placeholder', () => {
+    const result = validatePrMetadata({
+      title: 'Harden workflow gate',
+      body: validBody.replace('ONE-16', 'ONE-')
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.errors).toContain('PR title or body must include a Linear issue key such as ONE-15.');
+  });
+
+  it('rejects placeholder acceptance criteria', () => {
+    const result = validatePrMetadata({
+      title: 'ONE-16 Harden workflow gate',
+      body: validBody.replace(/- PRs without[\s\S]*?Quality Gate\./, '-')
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.errors).toContain('PR body must include a non-placeholder ## Acceptance section.');
+  });
+
+  it('rejects acceptance sections with any remaining template placeholder', () => {
+    const result = validatePrMetadata({
+      title: 'ONE-16 Harden workflow gate',
+      body: `## Acceptance
+
+- PR metadata gate rejects missing issue keys.
+- <ACCEPTANCE-CRITERION-2>`
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.errors).toContain('PR body must include a non-placeholder ## Acceptance section.');
+  });
+
+  it('accepts quality gate failure wording as real acceptance criteria', () => {
+    expect(hasMeaningfulAcceptance(`## Acceptance
+
+- Quality Gate fails when PR metadata does not include a Linear issue key.`)).toBe(true);
+  });
+
+  it('accepts HTML-like acceptance criteria that are not template placeholders', () => {
+    expect(hasMeaningfulAcceptance(`## Acceptance
+
+- Published pages include <meta name="description"> tags.`)).toBe(true);
+  });
+
+  it('rejects empty acceptance bullets even when another criterion is real', () => {
+    const result = validatePrMetadata({
+      title: 'ONE-16 Harden workflow gate',
+      body: `## Acceptance
+
+-
+- PR metadata gate rejects missing issue keys.`
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.errors).toContain('PR body must include a non-placeholder ## Acceptance section.');
+  });
+
+  it('does not blacklist future ONE issue numbers', () => {
+    expect(validatePrMetadata({
+      title: 'ONE-123 Harden workflow gate',
+      body: `## Acceptance
+
+- PR metadata gate accepts future real Linear issue keys.`
+    })).toMatchObject({
+      passed: true,
+      errors: []
+    });
+  });
+
+  it('reads local PR metadata from the GitHub CLI when available', () => {
+    const execFile = (() => JSON.stringify({
+      title: 'ONE-16 Harden workflow gate',
+      body: '## Acceptance\n\n- PR metadata gate reads local pull request metadata.'
+    })) as unknown as typeof import('node:child_process').execFileSync;
+
+    expect(readPullRequestMetadataFromGitHubCli(execFile)).toEqual({
+      title: 'ONE-16 Harden workflow gate',
+      body: '## Acceptance\n\n- PR metadata gate reads local pull request metadata.'
+    });
+  });
+
+  it('falls back to empty local PR metadata when GitHub CLI lookup fails', () => {
+    const execFile = (() => {
+      throw new Error('no pull request found');
+    }) as unknown as typeof import('node:child_process').execFileSync;
+
+    expect(readPullRequestMetadataFromGitHubCli(execFile)).toEqual({ title: '', body: '' });
+  });
+
+  it('rejects the unchanged pull request template', () => {
+    const template = readFileSync('.github/PULL_REQUEST_TEMPLATE.md', 'utf8');
+    const result = validatePrMetadata({
+      title: 'Harden workflow gate',
+      body: template
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.errors).toContain('PR title or body must include a Linear issue key such as ONE-15.');
+    expect(result.errors).toContain('PR body must include a non-placeholder ## Acceptance section.');
+  });
+});

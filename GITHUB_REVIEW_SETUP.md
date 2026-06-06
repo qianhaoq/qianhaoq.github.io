@@ -7,7 +7,7 @@
 - `REVIEW.md`: Claude Code Review 专用评审规则。
 - `.github/workflows/pr-quality.yml`: PR 质量门禁，检查名是 `Quality Gate`。
 - `.github/workflows/claude-review.yml`: Claude Code Review workflow。无论是否发现问题，都应在 PR 顶层写入 `## Claude Code Review` 总结评论。
-- `.github/workflows/ai-review-gate.yml`: AI 评审门禁。使用 `pull_request_target` 在默认分支 workflow 上下文运行；只有当前 PR head 同时存在 Codex PASS 和 Claude PASS 证据时才通过；门禁脚本从默认分支 checkout 的 `trusted-base` 执行，避免运行 PR head 中被篡改的脚本。
+- `.github/workflows/ai-review-gate.yml`: AI 评审门禁。使用 `pull_request_target` 在默认分支 workflow 上下文运行；先从默认分支 `trusted-base` 执行 PR metadata gate，再要求当前 PR head 同时存在 Codex PASS 和 Claude PASS 证据，避免运行 PR head 中被篡改的门禁脚本。
 - `scripts/ai-review-gate.mjs`: 结构化汇总 Codex issue comment、PR review、trigger reaction 和 Claude PASS 评论。
 - `scripts/devflow-metrics.mjs`: 记录 PR age、Quality Gate duration 和 bot review latency；指标评论失败不会阻塞 AI Review Gate。
 - `docs/ai-native-workflow.md`: Linear -> GitHub -> Codex/Claude -> required checks 的端到端工作流说明。
@@ -23,6 +23,7 @@
 4. Require conversation resolution before merging。
 5. Require linear history。
 6. 不允许 force push 和 branch deletion。
+7. Solo personal repo 默认不要求 required approval；需要协作者参与时，再开启 required pull request reviews。
 
 ## Linear 设置
 
