@@ -42,7 +42,7 @@ jobs:
 
             claude_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
-              '[.[] | select((.user.login == "github-actions[bot]") or (.user.login == "claude[bot]"))
+              '[.[] | select((.user.login == "cloud-code-review[bot]") or (.user.login == "github-actions[bot]") or (.user.login == "claude[bot]"))
                 | select(.body | contains("## Claude Code Review"))
                 | select(.body | contains($sha))
                 | select(.body | contains("Verdict: PASS"))
