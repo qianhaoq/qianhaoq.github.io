@@ -50,10 +50,11 @@ pnpm quality
 
 门禁顺序：
 
-1. `pnpm check`
-2. `pnpm unit:gate`，Vitest 单测通过率必须严格大于 90%
-3. `pnpm build`
-4. `pnpm bdd`
+1. `pnpm lint`，ESLint 静态规则检查，任何 warning 都会失败
+2. `pnpm check`
+3. `pnpm unit:gate`，Vitest 单测通过率必须严格大于 90%
+4. `pnpm build`
+5. `pnpm bdd`
 
 BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 

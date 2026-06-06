@@ -8,3 +8,9 @@ Feature: Authoring entry contract
     Then the author can start a draft with one command
     And new authoring posts default to private drafts
     And the public reader navigation stays separate from authoring tools
+
+  Scenario: The default quality gate checks lint before publishing contracts
+    Given the local authoring entry is available
+    When I inspect the quality gate contract
+    Then the default quality gate starts with lint
+    And lint fails on warnings

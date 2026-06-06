@@ -49,6 +49,7 @@ pnpm quality
 
 质量门禁包含：
 
+- `pnpm lint`: ESLint 静态规则检查，任何 error 或 warning 都会失败。
 - `pnpm check`: Astro/TypeScript 类型检查。
 - `pnpm unit:gate`: Vitest 单测报告门禁，单测通过率必须严格大于 90%；没有执行任何单测视为失败。
 - `pnpm build`: 生产构建并生成 Pagefind 索引。

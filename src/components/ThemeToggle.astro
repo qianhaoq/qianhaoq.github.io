@@ -10,7 +10,9 @@
       document.documentElement.dataset.theme = theme;
       try {
         localStorage.setItem('theme', theme);
-      } catch {}
+      } catch {
+        // localStorage can be unavailable in restricted browser contexts.
+      }
     };
     button?.addEventListener('click', () => {
       const current = document.documentElement.dataset.theme || 'light';
