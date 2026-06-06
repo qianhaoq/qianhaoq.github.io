@@ -6,7 +6,7 @@
       "version": "latest"
     }
   },
-  "onCreateCommand": "corepack enable && corepack prepare pnpm@10.12.1 --activate",
+  "onCreateCommand": "sudo npm install -g pnpm@10.12.1",
   "updateContentCommand": "pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chrome",
   "postCreateCommand": "node --version && pnpm --version",
   "forwardPorts": [
