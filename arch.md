@@ -11,6 +11,8 @@
 
 公开站点不提供 `/admin`、登录态、GitHub token 写入或服务端发布按钮。需要写入仓库的能力必须留在本地环境或 GitHub 仓库权限边界内。
 
+研发工作流按 Linear 和 GitHub 分层：Linear 记录需求、验收、风险和状态；GitHub 记录代码、CI、review evidence、合并和 Pages 发布。AI agent 可以读写 Linear 工作项，但合并门禁只由 GitHub required checks 执行。
+
 ## 数据流
 
 1. 作者通过 `pnpm author` 查看写作入口，通过 `pnpm write "标题"` 创建草稿。
@@ -37,3 +39,13 @@
 ## 发布
 
 仓库名为 `qianhaoq.github.io`，因此 Astro `site` 固定为 `https://qianhaoq.github.io`，不设置 `base`。GitHub Pages source 使用 GitHub Actions workflow。
+
+## 研发流
+
+1. Linear issue 定义目标、非目标、验收标准和风险。
+2. Agent 或作者创建包含 Linear issue key 的分支和 PR。
+3. `Quality Gate` 运行 lint、typecheck、单测通过率、build、BDD 和浏览器 smoke。
+4. Codex 与 Claude 针对当前 PR head 独立 review。
+5. `AI Review Gate` 汇总当前 head 的 Codex / Claude PASS evidence。
+6. `main` branch protection 要求 `Quality Gate` 和 `AI Review Gate` 通过后才能合并。
+7. 合并到 `main` 后，GitHub Pages workflow 发布静态产物，Linear issue 通过 GitHub integration 更新状态。

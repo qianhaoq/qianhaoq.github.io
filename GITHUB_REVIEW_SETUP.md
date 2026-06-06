@@ -10,6 +10,8 @@
 - `.github/workflows/ai-review-gate.yml`: AI 评审门禁。使用 `pull_request_target` 在默认分支 workflow 上下文运行；只有当前 PR head 同时存在 Codex PASS 和 Claude PASS 证据时才通过；门禁脚本从默认分支 checkout 的 `trusted-base` 执行，避免运行 PR head 中被篡改的脚本。
 - `scripts/ai-review-gate.mjs`: 结构化汇总 Codex issue comment、PR review、trigger reaction 和 Claude PASS 评论。
 - `scripts/devflow-metrics.mjs`: 记录 PR age、Quality Gate duration 和 bot review latency；指标评论失败不会阻塞 AI Review Gate。
+- `docs/ai-native-workflow.md`: Linear -> GitHub -> Codex/Claude -> required checks 的端到端工作流说明。
+- `.github/PULL_REQUEST_TEMPLATE.md`: 要求 PR 填写 Linear issue、验收标准、BDD/测试和静态边界检查。
 
 ## 推荐 GitHub 仓库设置
 
@@ -21,6 +23,15 @@
 4. Require conversation resolution before merging。
 5. Require linear history。
 6. 不允许 force push 和 branch deletion。
+
+## Linear 设置
+
+Linear 是需求和状态源，不是合并门禁源。推荐在 Linear 的 GitHub integration 中为 `OneRepublic` 团队连接 `qianhaoq/qianhaoq.github.io`：
+
+1. 启用 PR linking，让 branch name、PR title、PR description 和 magic words 可以关联 Linear issue。
+2. 对 `main` 配置 issue status automation：PR linked/opened 进入执行或 review，PR merged 进入 Done，PR closed without merge 回到 Backlog 或 Canceled。
+3. 保持 GitHub required checks 作为唯一硬门禁；Linear 状态只反映工作进度。
+4. 暂不启用 GitHub Issues 双向同步，除非需要公开反馈入口。
 
 ## Codex Code Review
 
