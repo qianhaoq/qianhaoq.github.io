@@ -8,4 +8,5 @@ fi
 pnpm --version
 pnpm install --frozen-lockfile
 pnpm exec playwright install --with-deps chrome
-pnpm quality:pr
+pnpm quality
+pnpm browser:smoke
