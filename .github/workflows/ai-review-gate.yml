@@ -6,15 +6,30 @@ on:
 
 permissions:
   contents: read
-  issues: read
+  checks: read
+  issues: write
   pull-requests: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ai-review-gate:
     name: AI Review Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: trusted-base
+          persist-credentials: false
+
       - name: Require Codex and Claude passing reviews
         env:
           GH_TOKEN: ${{ github.token }}
@@ -24,24 +39,59 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [ -f trusted-base/scripts/ai-review-gate.mjs ]; then
+            node trusted-base/scripts/ai-review-gate.mjs
+            exit 0
+          fi
+
+          # Migration fallback for the PR that introduces the trusted script.
+          # After this PR lands, the gate always runs trusted-base/scripts/ai-review-gate.mjs.
           short_sha="${HEAD_SHA:0:7}"
-          head_date="$(gh api "repos/${REPOSITORY}/commits/${HEAD_SHA}" --jq '.commit.committer.date')"
+          head_date="$(gh api "repos/${REPOSITORY}/commits/${HEAD_SHA}" --jq '.commit.committer.date // .commit.author.date')"
 
           for attempt in $(seq 1 45); do
             comments="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate)"
+            reviews="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate)"
+            latest_trigger_date="$(jq -r \
+              --arg date "${head_date}" \
+              '[.[] | select((.body | ascii_downcase | test("^@codex[[:space:]]+review\\b")) and (.created_at >= $date)) | .created_at] | max // ""' \
+              <<< "${comments}")"
 
-            # codex-bot alias: the actual GitHub author is OpenAI's app.
-            codex_pass_count="$(jq \
+            codex_issue_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
               --arg short "${short_sha}" \
-              --arg date "${head_date}" \
+              --arg trigger_date "${latest_trigger_date}" \
               '[.[] | select((.user.login == "chatgpt-codex-connector[bot]") or (.user.login == "codex-bot[bot]"))
                 | select(.body | contains("Codex Review"))
-                | select((.body | contains($sha)) or (.body | contains($short)) or (.created_at >= $date))
-                | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")))
+                | select((.body | contains($sha)) or (.body | contains($short)) or (($trigger_date != "") and (.created_at >= $trigger_date)))
+                | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")) or (.body | contains("Didn’t find any major issues")))
               ] | length' <<< "${comments}")"
 
-            # claude-bot alias: keep legacy authors accepted during identity migration.
+            codex_review_pass_count="$(jq \
+              --arg sha "${HEAD_SHA}" \
+              --arg short "${short_sha}" \
+              '[.[] | select((.user.login == "chatgpt-codex-connector[bot]") or (.user.login == "codex-bot[bot]"))
+                | select(.body | contains("Codex Review"))
+                | select((.commit_id == $sha) or (.body | contains($sha)) or (.body | contains($short)))
+                | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")) or (.body | contains("Didn’t find any major issues")))
+              ] | length' <<< "${reviews}")"
+
+            codex_reaction_pass_count="0"
+            trigger_ids="$(jq -r \
+              --arg date "${head_date}" \
+              '.[] | select((.body | ascii_downcase | test("^@codex[[:space:]]+review\\b")) and (.created_at >= $date)) | .id' \
+              <<< "${comments}")"
+            for trigger_id in ${trigger_ids}; do
+              reactions="$(gh api "repos/${REPOSITORY}/issues/comments/${trigger_id}/reactions" --paginate)"
+              current_count="$(jq \
+                --arg date "${head_date}" \
+                '[.[] | select((.user.login == "chatgpt-codex-connector[bot]") or (.user.login == "codex-bot[bot]"))
+                  | select(.content == "+1")
+                  | select(.created_at >= $date)
+                ] | length' <<< "${reactions}")"
+              codex_reaction_pass_count="$((codex_reaction_pass_count + current_count))"
+            done
+
             claude_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
               '[.[] | select((.user.login == "claude-bot[bot]") or (.user.login == "cloud-code-review[bot]") or (.user.login == "github-actions[bot]") or (.user.login == "claude[bot]"))
@@ -50,6 +100,7 @@ jobs:
                 | select(.body | contains("Verdict: PASS"))
               ] | length' <<< "${comments}")"
 
+            codex_pass_count="$((codex_issue_pass_count + codex_review_pass_count + codex_reaction_pass_count))"
             echo "Attempt ${attempt}: codex-bot_pass=${codex_pass_count}, claude-bot_pass=${claude_pass_count}"
 
             if [ "${codex_pass_count}" -gt 0 ] && [ "${claude_pass_count}" -gt 0 ]; then
@@ -61,5 +112,18 @@ jobs:
           done
 
           echo "::error::Missing passing codex-bot and claude-bot reviews for current PR head ${HEAD_SHA}."
-          echo "::error::Need a codex-bot review comment with no major issues and a claude-bot review comment with Verdict: PASS."
           exit 1
+
+      - name: Post devflow metrics
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -f trusted-base/scripts/devflow-metrics.mjs ]; then
+            node trusted-base/scripts/devflow-metrics.mjs
+          else
+            echo "Devflow metrics script is not available on the default branch yet."
+          fi

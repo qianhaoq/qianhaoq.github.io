@@ -11,6 +11,10 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Quality Gate
@@ -29,5 +33,10 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Ensure Chrome for browser smoke
+        run: |
+          if ! command -v google-chrome >/dev/null 2>&1; then
+            pnpm exec playwright install --with-deps chrome
+          fi
       - name: Run quality gate with lint
-        run: pnpm quality
+        run: pnpm quality:pr
