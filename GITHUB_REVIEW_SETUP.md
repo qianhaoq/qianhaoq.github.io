@@ -32,7 +32,7 @@
 
 需要自动评审时，在 Codex settings 中开启 Automatic reviews。
 
-Codex 通过信号来自 `chatgpt-codex-connector[bot]` 的 PR 顶层评论。`AI Review Gate` 会要求评论对应当前 PR head，并且包含无 major issues 的通过结论。
+仓库内把 Codex reviewer 记作 `codex-bot`。真实 GitHub 评论作者仍是 OpenAI 的 `chatgpt-codex-connector[bot]`，这个 GitHub App 名称不能由本仓库改名。`AI Review Gate` 会要求评论对应当前 PR head，并且包含 no major issues 的通过结论。
 
 ## Claude Code Review
 
@@ -56,4 +56,4 @@ ANTHROPIC_API_KEY
 CLAUDE_CODE_OAUTH_TOKEN
 ```
 
-Claude 通过信号来自 workflow 发布的 `## Claude Code Review` 顶层评论，且必须包含当前 PR head 和 `Verdict: PASS`。
+Claude reviewer 在仓库内记作 `claude-bot`。`claude-review.yml` 使用 `CLAUDE_BOT_APP_CLIENT_ID` 和 `CLAUDE_BOT_APP_PRIVATE_KEY` 创建 GitHub App token，再发布 `## Claude Code Review` 顶层评论；评论必须包含当前 PR head 和 `Verdict: PASS`。
