@@ -37,6 +37,7 @@ series: "系列名"
 pnpm install
 pnpm dev
 pnpm quality
+pnpm quality:pr
 pnpm preview
 ```
 
@@ -56,6 +57,8 @@ pnpm quality
 4. `pnpm build`
 5. `pnpm bdd`
 
+PR 默认检查运行 `pnpm quality:pr`，会额外执行 `pnpm browser:smoke`，用 Playwright 覆盖首页、文章页、搜索、主题切换、代码复制和移动端首屏。
+
 BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 
 ## 发布
@@ -67,3 +70,5 @@ BDD 约束见 `bdd.md`，场景在 `features/**/*.feature`。
 3. `actions/deploy-pages@v4`
 
 GitHub Pages 配置应使用 workflow source，不使用 `gh-pages` 分支。
+
+PR 的 AI review gate 使用 `scripts/ai-review-gate.mjs` 读取 Codex 和 Claude 的当前 HEAD 评审结果；通过后会用 `scripts/devflow-metrics.mjs` 更新 PR 里的 Devflow Metrics 评论。

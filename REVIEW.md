@@ -5,6 +5,7 @@
 Report as Important only when the change can break the blog's behavior, publication safety, or repository operating contract:
 
 - The production build, `pnpm quality`, GitHub Pages deployment, RSS, sitemap, Pagefind search, or public routes can fail.
+- The PR-only `pnpm quality:pr` browser smoke path is weakened or no longer checks key reader interactions.
 - Draft posts can appear in public pages, RSS, sitemap, or search indexes.
 - A user-visible behavior changes without matching BDD coverage.
 - The content schema changes without updating examples, authoring scripts, and docs.
@@ -28,3 +29,4 @@ Treat copy polish, minor style preferences, and naming suggestions as Nit at mos
 - Reader-facing pages remain static and public-only.
 - Any behavior change is reflected in `features/**/*.feature` and step definitions.
 - Review comments cite concrete files and give a reproducible validation path.
+- AI review gate changes keep `scripts/ai-review-gate.mjs` and its unit tests in sync.

@@ -35,3 +35,5 @@ pnpm quality
 5. `pnpm bdd`
 
 `pnpm bdd` 必须在 `pnpm build` 后执行；如果 `dist/` 不存在，BDD 应直接失败。
+
+PR 默认质量门禁使用 `pnpm quality:pr`，在上述门禁后追加 `pnpm browser:smoke`。BDD 需要保持这个作者/发布契约可验证。

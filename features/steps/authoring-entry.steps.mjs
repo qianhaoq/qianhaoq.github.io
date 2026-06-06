@@ -38,6 +38,7 @@ Then('the public reader navigation stays separate from authoring tools', functio
 When('I inspect the quality gate contract', function () {
   assert.ok(this.packageJson?.scripts, 'Expected package.json scripts to be loaded.');
   this.qualityScript = this.packageJson.scripts.quality;
+  this.prQualityScript = this.packageJson.scripts['quality:pr'];
   this.lintScript = this.packageJson.scripts.lint;
 });
 
@@ -50,4 +51,8 @@ Then('the default quality gate starts with lint', function () {
 
 Then('lint fails on warnings', function () {
   assert.equal(this.lintScript, 'eslint . --max-warnings=0');
+});
+
+Then('the PR quality gate includes browser smoke', function () {
+  assert.equal(this.prQualityScript, 'pnpm quality && pnpm browser:smoke');
 });

@@ -14,3 +14,4 @@ Feature: Authoring entry contract
     When I inspect the quality gate contract
     Then the default quality gate starts with lint
     And lint fails on warnings
+    And the PR quality gate includes browser smoke
