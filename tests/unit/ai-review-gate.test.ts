@@ -106,6 +106,26 @@ describe('AI review gate contracts', () => {
     expect(summary.codex).toMatchObject({ passed: false, evidence: null });
   });
 
+  it('accepts Codex no-issue comments after a current review trigger', () => {
+    const summary = summarizeAiReviews({
+      issueComments: [
+        {
+          user: { login: 'qianhaoq' },
+          created_at: '2026-06-06T10:20:00Z',
+          body: '@codex review'
+        },
+        {
+          user: { login: 'chatgpt-codex-connector[bot]' },
+          created_at: '2026-06-06T10:22:00Z',
+          body: "Codex Review: Didn't find any major issues."
+        }
+      ]
+    }, { headSha, headDate });
+
+    expect(summary.codex).toMatchObject({ passed: true });
+    expect(summary.codex.evidence?.source).toBe('issue_comment');
+  });
+
   it('rejects Claude PASS comments for older heads', () => {
     const summary = summarizeAiReviews({
       issueComments: [

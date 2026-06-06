@@ -45,6 +45,10 @@ const reviewTargetsCurrentHead = (review, body, headSha) =>
 
 const getBody = (item) => item.body ?? '';
 
+const latestDate = (values) => values
+  .filter(hasUsableDate)
+  .sort((left, right) => normalizeDate(right) - normalizeDate(left))[0];
+
 /**
  * @typedef {{ login?: string }} GitHubUser
  * @typedef {{ id?: number, user?: GitHubUser, body?: string, created_at?: string }} IssueComment
@@ -59,10 +63,17 @@ const getBody = (item) => item.body ?? '';
  * @param {ReviewContext} context
  */
 export const summarizeAiReviews = ({ issueComments = [], pullReviews = [], triggerReactions = [] }, { headSha, headDate }) => {
+  const latestCurrentTriggerDate = latestDate(issueComments
+    .filter((comment) => isCodexReviewTrigger(getBody(comment)) && isAtOrAfter(comment.created_at, headDate))
+    .map((comment) => comment.created_at));
+
   const codexIssuePass = issueComments.find((comment) =>
     CODEX_BOT_AUTHORS.has(comment.user?.login) &&
     isCodexNoIssueBody(getBody(comment)) &&
-    bodyContainsCurrentHead(getBody(comment), headSha)
+    (
+      bodyContainsCurrentHead(getBody(comment), headSha) ||
+      isAtOrAfter(comment.created_at, latestCurrentTriggerDate)
+    )
   );
 
   const codexReviewPass = pullReviews.find((review) =>

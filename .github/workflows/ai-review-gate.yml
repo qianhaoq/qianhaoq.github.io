@@ -52,13 +52,18 @@ jobs:
           for attempt in $(seq 1 45); do
             comments="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate)"
             reviews="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate)"
+            latest_trigger_date="$(jq -r \
+              --arg date "${head_date}" \
+              '[.[] | select((.body | ascii_downcase | test("^@codex[[:space:]]+review\\b")) and (.created_at >= $date)) | .created_at] | max // ""' \
+              <<< "${comments}")"
 
             codex_issue_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
               --arg short "${short_sha}" \
+              --arg trigger_date "${latest_trigger_date}" \
               '[.[] | select((.user.login == "chatgpt-codex-connector[bot]") or (.user.login == "codex-bot[bot]"))
                 | select(.body | contains("Codex Review"))
-                | select((.body | contains($sha)) or (.body | contains($short)))
+                | select((.body | contains($sha)) or (.body | contains($short)) or (($trigger_date != "") and (.created_at >= $trigger_date)))
                 | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")) or (.body | contains("Didn’t find any major issues")))
               ] | length' <<< "${comments}")"
 
