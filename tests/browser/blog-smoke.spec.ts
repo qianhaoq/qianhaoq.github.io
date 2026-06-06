@@ -1,4 +1,12 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
+const getStarterPostPath = async (page: Page) => {
+  await page.goto('/posts/');
+  const href = await page.getByRole('link', { name: '这个博客从这里开始' }).first().getAttribute('href');
+  expect(href).toBeTruthy();
+  return href ?? '/posts/';
+};
 
 test('reader entry keeps drafts private and renders responsive navigation', async ({ page }, testInfo) => {
   await page.goto('/');
@@ -13,7 +21,7 @@ test('reader entry keeps drafts private and renders responsive navigation', asyn
 
 test('article page exposes table of contents, reading progress, and copy interaction', async ({ context, page }) => {
   await context.grantPermissions(['clipboard-write']);
-  await page.goto('/posts/2026-06-05-start-here/');
+  await page.goto(await getStarterPostPath(page));
 
   await expect(page.getByRole('heading', { name: '这个博客从这里开始' })).toBeVisible();
   await expect(page.getByLabel('文章目录')).toContainText('为什么建这个站点');
@@ -24,7 +32,11 @@ test('article page exposes table of contents, reading progress, and copy interac
   await expect(copyButton).toHaveText('已复制');
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await expect(page.locator('.reading-progress')).toHaveCSS('transform', /matrix/);
+  await expect.poll(async () => page.locator('.reading-progress').evaluate((bar) => {
+    const transform = window.getComputedStyle(bar).transform;
+    if (transform === 'none') return 0;
+    return new DOMMatrixReadOnly(transform).a;
+  })).toBeGreaterThan(0.5);
 });
 
 test('theme toggle and search work against the built Pagefind index', async ({ page }) => {
