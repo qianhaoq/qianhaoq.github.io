@@ -56,10 +56,9 @@ jobs:
             codex_issue_pass_count="$(jq \
               --arg sha "${HEAD_SHA}" \
               --arg short "${short_sha}" \
-              --arg date "${head_date}" \
               '[.[] | select((.user.login == "chatgpt-codex-connector[bot]") or (.user.login == "codex-bot[bot]"))
                 | select(.body | contains("Codex Review"))
-                | select((.body | contains($sha)) or (.body | contains($short)) or (.created_at >= $date))
+                | select((.body | contains($sha)) or (.body | contains($short)))
                 | select((.body | contains("未发现需要修改的问题")) or (.body | contains("Didn'\''t find any major issues")) or (.body | contains("Didn’t find any major issues")))
               ] | length' <<< "${comments}")"
 

@@ -16,7 +16,7 @@ describe('AI review gate contracts', () => {
         {
           user: { login: 'chatgpt-codex-connector[bot]' },
           created_at: '2026-06-06T10:19:34Z',
-          body: "Codex Review: Didn't find any major issues. Bravo."
+          body: `Codex Review: Didn't find any major issues.\n\nReviewed commit: ${headSha.slice(0, 10)}`
         }
       ]
     }, { headSha, headDate });
@@ -84,6 +84,20 @@ describe('AI review gate contracts', () => {
         {
           user: { login: 'chatgpt-codex-connector[bot]' },
           created_at: '2026-06-06T10:00:00Z',
+          body: "Codex Review: Didn't find any major issues."
+        }
+      ]
+    }, { headSha, headDate });
+
+    expect(summary.codex).toMatchObject({ passed: false, evidence: null });
+  });
+
+  it('rejects delayed Codex issue comments that do not name the current head', () => {
+    const summary = summarizeAiReviews({
+      issueComments: [
+        {
+          user: { login: 'chatgpt-codex-connector[bot]' },
+          created_at: '2026-06-06T10:30:00Z',
           body: "Codex Review: Didn't find any major issues."
         }
       ]

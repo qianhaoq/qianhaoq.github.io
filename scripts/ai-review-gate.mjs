@@ -62,7 +62,7 @@ export const summarizeAiReviews = ({ issueComments = [], pullReviews = [], trigg
   const codexIssuePass = issueComments.find((comment) =>
     CODEX_BOT_AUTHORS.has(comment.user?.login) &&
     isCodexNoIssueBody(getBody(comment)) &&
-    (bodyContainsCurrentHead(getBody(comment), headSha) || isAtOrAfter(comment.created_at, headDate))
+    bodyContainsCurrentHead(getBody(comment), headSha)
   );
 
   const codexReviewPass = pullReviews.find((review) =>

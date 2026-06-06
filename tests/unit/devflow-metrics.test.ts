@@ -41,7 +41,7 @@ describe('devflow metrics contracts', () => {
         {
           user: { login: 'chatgpt-codex-connector[bot]' },
           created_at: '2026-06-06T10:19:34Z',
-          body: "Codex Review: Didn't find any major issues. Bravo."
+          body: `Codex Review: Didn't find any major issues.\n\nReviewed commit: ${headSha.slice(0, 10)}`
         }
       ],
       pullReviews: [

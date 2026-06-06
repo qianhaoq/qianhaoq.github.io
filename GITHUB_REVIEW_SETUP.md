@@ -34,8 +34,8 @@
 
 需要自动评审时，在 Codex settings 中开启 Automatic reviews。
 
-仓库内把 Codex reviewer 记作 `codex-bot`。真实 GitHub 评论作者仍是 OpenAI 的 `chatgpt-codex-connector[bot]`，这个 GitHub App 名称不能由本仓库改名。`AI Review Gate` 会要求评论对应当前 PR head，并且包含 no major issues 的通过结论。
-如果 Codex 以 PR review 或 `@codex review ...` 的 thumbs-up reaction 表示通过，`scripts/ai-review-gate.mjs` 也会纳入判断；PR review 必须绑定当前 `commit_id` 或正文包含当前 head SHA。
+仓库内把 Codex reviewer 记作 `codex-bot`。真实 GitHub 评论作者仍是 OpenAI 的 `chatgpt-codex-connector[bot]`，这个 GitHub App 名称不能由本仓库改名。`AI Review Gate` 会要求 Codex comment/review 对应当前 PR head，并且包含 no major issues 的通过结论。
+如果 Codex 以 PR review 或 `@codex review ...` 的 thumbs-up reaction 表示通过，`scripts/ai-review-gate.mjs` 也会纳入判断；PR review 必须绑定当前 `commit_id` 或正文包含当前 head SHA，issue comment 必须正文包含当前 head SHA。
 
 ## Claude Code Review
 
