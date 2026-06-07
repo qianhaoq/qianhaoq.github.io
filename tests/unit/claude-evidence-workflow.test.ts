@@ -10,6 +10,7 @@ describe('manual Claude evidence workflow contract', () => {
     expect(content).toContain('workflow_dispatch:');
     expect(content).toContain('pr_number:');
     expect(content).toContain('head_sha:');
+    expect(content).toContain('pull-requests: write');
     expect(content).not.toContain('pull_request:');
     expect(content).not.toContain('pull_request_target:');
   });
