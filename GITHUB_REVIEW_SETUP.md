@@ -74,6 +74,8 @@ CLAUDE_CODE_OAUTH_TOKEN
 
 Claude reviewer 在仓库内记作 `claude-bot`。`claude-review.yml` 使用 `CLAUDE_BOT_APP_CLIENT_ID` 和 `CLAUDE_BOT_APP_PRIVATE_KEY` 创建 GitHub App token，再发布 `## Claude Code Review` 顶层评论；评论必须包含当前 PR head 和 `Verdict: PASS`。
 
+`claude-review.yml` 会在 `opened`、`synchronize`、`reopened` 和 `ready_for_review` 时刷新 Claude 证据。这样 draft PR 标记 ready、已关闭 PR 重新打开、或后续 push 后，`AI Review Gate` 都能等待当前 head 的 Claude PASS，而不是复用旧提交证据。
+
 如果 PR 修改 `.github/workflows/claude-review.yml` 本身，Anthropic `claude-code-action@v1` 可能拒绝换取 app token，因为正在运行的 workflow 文件必须已经存在于默认分支且内容一致。不要因此降低 `Quality Gate` 或 `AI Review Gate`；应从默认分支运行 `Claude Review Evidence` workflow，为指定 PR 和 head SHA 生成同格式 Claude PASS/FAIL 证据。
 
 ```bash
@@ -84,4 +86,4 @@ gh workflow run "Claude Review Evidence" \
   -f head_sha=<CURRENT_HEAD_SHA>
 ```
 
-这个 workflow 必须从 `main` 运行，避免执行 PR head 中的 workflow 代码。它会让 Claude 实际 review 指定 PR 和 head SHA，然后用 Claude bot App token 发布 `## Claude Code Review` 评论。
+这个 workflow 必须从 `main` 运行，避免执行 PR head 中的 workflow 代码。它会让 Claude 实际 review 指定 PR 和 head SHA；Claude 模型步骤不能持有可被 gate 信任的写权限 token，最终只能用 Claude bot App token 发布 `## Claude Code Review` 评论。合并后再用 `reopened` 或 `ready_for_review` 事件验证默认分支 workflow。
