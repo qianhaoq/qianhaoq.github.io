@@ -6,6 +6,7 @@ Feature: Blog publishing contract
     Given the production site has been built
     When I inspect the public blog entry points
     Then the published starter post is available
+    And the deployment verification signal is visible on the homepage
     And the draft sample is not exposed in public pages
 
   Scenario: Search, RSS, and sitemap expose published writing

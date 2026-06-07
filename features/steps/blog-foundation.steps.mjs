@@ -37,6 +37,11 @@ Then('the published starter post is available', function () {
   assert.match(this.publicText, /\/posts\/2026-06-05-start-here\//);
 });
 
+Then('the deployment verification signal is visible on the homepage', function () {
+  const homepage = readDist('index.html');
+  assert.match(homepage, /部署验证/);
+});
+
 Then('the draft sample is not exposed in public pages', function () {
   assert.doesNotMatch(this.publicText, /草稿示例|draft-note|Draft/);
 });
