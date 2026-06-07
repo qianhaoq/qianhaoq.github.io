@@ -1,0 +1,162 @@
+name: Claude Review Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to review
+        required: true
+        type: string
+      head_sha:
+        description: Exact PR head SHA that the review must cover
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+  id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  claude-review-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build PR review context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          actual_head="$(
+            gh pr view "${PR_NUMBER}" \
+              --repo "${REPOSITORY}" \
+              --json headRefOid \
+              --jq '.headRefOid'
+          )"
+
+          if [ "${actual_head}" != "${HEAD_SHA}" ]; then
+            echo "PR #${PR_NUMBER} head is ${actual_head}, expected ${HEAD_SHA}."
+            exit 1
+          fi
+
+          {
+            echo "# Claude PR Review Context"
+            echo
+            echo "Repository: ${REPOSITORY}"
+            echo "PR: #${PR_NUMBER}"
+            echo "Head SHA: ${HEAD_SHA}"
+            echo
+            echo "## PR metadata"
+            gh pr view "${PR_NUMBER}" \
+              --repo "${REPOSITORY}" \
+              --json title,body,author,baseRefName,headRefName,headRefOid,url
+            echo
+            echo "## PR diff"
+            gh pr diff "${PR_NUMBER}" --repo "${REPOSITORY}"
+          } > claude-pr-review-context.md
+
+      - id: claude
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          github_token: ${{ github.token }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            请用中文 review 这个 PR。无论是否发现问题，都必须给出明确结论。
+
+            当前仓库：${{ github.repository }}
+            当前 PR：#${{ inputs.pr_number }}
+            当前 HEAD SHA：${{ inputs.head_sha }}
+
+            请重点检查 `claude-pr-review-context.md` 中的 PR metadata 和 PR diff，不要只检查默认分支。
+
+            重点关注：
+            - 是否会导致公开站点构建失败或草稿泄露
+            - RSS/sitemap/search 是否暴露了草稿或错误内容
+            - 用户可见行为改动是否同步了 BDD 场景
+            - 是否违反 GitHub Pages 纯静态边界（新增后台路由、保存 token、模拟登录态）
+            - 是否降低 Quality Gate、AI Review Gate 或 workflow 安全边界
+
+            如果没有需要修改的问题，verdict 必须是 PASS。
+            如果发现需要修改的问题，verdict 必须是 FAIL，并在 findings 中给出具体文件路径和可复现的验证方式。
+          claude_args: |
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["PASS","FAIL"]},"summary":{"type":"string"},"head_sha":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["CRITICAL","HIGH","MEDIUM","LOW"]},"file":{"type":"string"},"description":{"type":"string"},"verification":{"type":"string"}},"required":["severity","file","description","verification"],"additionalProperties":false}}},"required":["verdict","summary","head_sha","findings"],"additionalProperties":false}'
+
+      - id: claude-bot-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.CLAUDE_BOT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CLAUDE_BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Post Claude review evidence
+        env:
+          GH_TOKEN: ${{ steps.claude-bot-token.outputs.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+          CLAUDE_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CLAUDE_OUTPUT}" ]; then
+            echo "Claude did not return structured_output."
+            exit 1
+          fi
+
+          output_file="$(mktemp)"
+          comment_file="$(mktemp)"
+          printf '%s' "${CLAUDE_OUTPUT}" > "${output_file}"
+
+          verdict="$(jq -r '.verdict // "FAIL"' "${output_file}")"
+          summary="$(jq -r '.summary // ""' "${output_file}")"
+          reviewed_head="$(jq -r '.head_sha // ""' "${output_file}")"
+          findings="$(jq -r '
+            if (.findings | length) == 0 then
+              "- 无需要修改的问题。"
+            else
+              .findings[]
+              | "- [" + .severity + "] " + .file + ": " + .description + "\n  验证: " + .verification
+            end
+          ' "${output_file}")"
+
+          if [ "${reviewed_head}" != "${HEAD_SHA}" ]; then
+            echo "Claude reviewed head ${reviewed_head}, expected ${HEAD_SHA}."
+            exit 1
+          fi
+
+          {
+            echo "## Claude Code Review"
+            echo
+            echo "Head SHA: ${HEAD_SHA}"
+            echo "Verdict: ${verdict}"
+            echo
+            echo "${summary}"
+            echo
+            echo "### Findings"
+            echo "${findings}"
+          } > "${comment_file}"
+
+          gh pr comment "${PR_NUMBER}" --body-file "${comment_file}"
+
+          if [ "${verdict}" != "PASS" ]; then
+            echo "Claude review verdict is ${verdict}."
+            exit 1
+          fi

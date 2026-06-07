@@ -7,6 +7,7 @@
 - `REVIEW.md`: Claude Code Review 专用评审规则。
 - `.github/workflows/pr-quality.yml`: PR 质量门禁，检查名是 `Quality Gate`。
 - `.github/workflows/claude-review.yml`: Claude Code Review workflow。无论是否发现问题，都应在 PR 顶层写入 `## Claude Code Review` 总结评论。
+- `.github/workflows/claude-review-evidence.yml`: 默认分支上的手动 Claude evidence workflow，用于 workflow self-change PR 或需要重新采集当前 head Claude 证据的场景。
 - `.github/workflows/ai-review-gate.yml`: AI 评审门禁。使用 `pull_request_target` 在默认分支 workflow 上下文运行；先从默认分支 `trusted-base` 执行 PR metadata gate，再要求当前 PR head 同时存在 Codex PASS 和 Claude PASS 证据，避免运行 PR head 中被篡改的门禁脚本。
 - `scripts/ai-review-gate.mjs`: 结构化汇总 Codex issue comment、PR review、trigger reaction 和 Claude PASS 评论。
 - `scripts/devflow-metrics.mjs`: 记录 PR age、Quality Gate duration 和 bot review latency；指标评论失败不会阻塞 AI Review Gate。
@@ -72,3 +73,15 @@ CLAUDE_CODE_OAUTH_TOKEN
 ```
 
 Claude reviewer 在仓库内记作 `claude-bot`。`claude-review.yml` 使用 `CLAUDE_BOT_APP_CLIENT_ID` 和 `CLAUDE_BOT_APP_PRIVATE_KEY` 创建 GitHub App token，再发布 `## Claude Code Review` 顶层评论；评论必须包含当前 PR head 和 `Verdict: PASS`。
+
+如果 PR 修改 `.github/workflows/claude-review.yml` 本身，Anthropic `claude-code-action@v1` 可能拒绝换取 app token，因为正在运行的 workflow 文件必须已经存在于默认分支且内容一致。不要因此降低 `Quality Gate` 或 `AI Review Gate`；应从默认分支运行 `Claude Review Evidence` workflow，为指定 PR 和 head SHA 生成同格式 Claude PASS/FAIL 证据。
+
+```bash
+gh workflow run "Claude Review Evidence" \
+  --repo qianhaoq/qianhaoq.github.io \
+  --ref main \
+  -f pr_number=<PR_NUMBER> \
+  -f head_sha=<CURRENT_HEAD_SHA>
+```
+
+这个 workflow 必须从 `main` 运行，避免执行 PR head 中的 workflow 代码。它会让 Claude 实际 review 指定 PR 和 head SHA，然后用 Claude bot App token 发布 `## Claude Code Review` 评论。
