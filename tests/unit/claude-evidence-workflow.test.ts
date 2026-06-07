@@ -11,6 +11,7 @@ describe('manual Claude evidence workflow contract', () => {
     expect(content).toContain('pr_number:');
     expect(content).toContain('head_sha:');
     expect(content).toContain('pull-requests: read');
+    expect(content).toContain('if: ${{ github.ref_name == github.event.repository.default_branch }}');
     expect(content).toContain('Require default branch dispatch');
     expect(content).toContain('Claude Review Evidence must run from ${DEFAULT_BRANCH}');
     expect(content).not.toContain('pull_request:');
@@ -21,13 +22,18 @@ describe('manual Claude evidence workflow contract', () => {
     const content = workflow();
 
     expect(content).toContain('actual_head="$(');
-    expect(content).toContain('gh pr diff "${PR_NUMBER}" --repo "${REPOSITORY}"');
+    expect(content).toContain('baseRefName,baseRefOid,headRefName,headRefOid,url');
+    expect(content).toContain('/repos/${REPOSITORY}/compare/${base_sha}...${HEAD_SHA}');
     expect(content).toContain('claude-pr-review-context.md');
     expect(content).not.toContain('github_token: ${{ github.token }}');
     expect(content).toContain('--allowedTools Read');
     expect(content).toContain('uses: anthropics/claude-code-action@v1');
     expect(content).toContain('uses: actions/create-github-app-token@v3');
     expect(content).toContain('reviewed_head="$(jq -r');
+    expect(content).toContain('finding_count="$(jq -r');
+    expect(content).toContain('Claude returned PASS with ${finding_count} finding(s).');
+    expect(content).toContain('current_head="$(');
+    expect(content).toContain('PR #${PR_NUMBER} head changed to ${current_head}');
     expect(content).toContain('Head SHA: ${HEAD_SHA}');
     expect(content).toContain('Verdict: ${verdict}');
     expect(content).toContain('gh pr comment "${PR_NUMBER}" --body-file "${comment_file}"');

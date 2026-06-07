@@ -23,6 +23,7 @@ env:
 
 jobs:
   claude-review-evidence:
+    if: ${{ github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -53,12 +54,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          actual_head="$(
+          pr_metadata="$(
             gh pr view "${PR_NUMBER}" \
               --repo "${REPOSITORY}" \
-              --json headRefOid \
-              --jq '.headRefOid'
+              --json title,body,author,baseRefName,baseRefOid,headRefName,headRefOid,url
           )"
+          actual_head="$(printf '%s' "${pr_metadata}" | jq -r '.headRefOid')"
+          base_sha="$(printf '%s' "${pr_metadata}" | jq -r '.baseRefOid')"
 
           if [ "${actual_head}" != "${HEAD_SHA}" ]; then
             echo "PR #${PR_NUMBER} head is ${actual_head}, expected ${HEAD_SHA}."
@@ -73,12 +75,12 @@ jobs:
             echo "Head SHA: ${HEAD_SHA}"
             echo
             echo "## PR metadata"
-            gh pr view "${PR_NUMBER}" \
-              --repo "${REPOSITORY}" \
-              --json title,body,author,baseRefName,headRefName,headRefOid,url
+            printf '%s\n' "${pr_metadata}"
             echo
             echo "## PR diff"
-            gh pr diff "${PR_NUMBER}" --repo "${REPOSITORY}"
+            gh api \
+              -H "Accept: application/vnd.github.diff" \
+              "/repos/${REPOSITORY}/compare/${base_sha}...${HEAD_SHA}"
           } > claude-pr-review-context.md
 
       - id: claude
@@ -122,6 +124,7 @@ jobs:
           GH_TOKEN: ${{ steps.claude-bot-token.outputs.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_SHA: ${{ inputs.head_sha }}
+          REPOSITORY: ${{ github.repository }}
           CLAUDE_OUTPUT: ${{ steps.claude.outputs.structured_output }}
         run: |
           set -euo pipefail
@@ -138,8 +141,9 @@ jobs:
           verdict="$(jq -r '.verdict // "FAIL"' "${output_file}")"
           summary="$(jq -r '.summary // ""' "${output_file}")"
           reviewed_head="$(jq -r '.head_sha // ""' "${output_file}")"
+          finding_count="$(jq -r '(.findings // []) | length' "${output_file}")"
           findings="$(jq -r '
-            if (.findings | length) == 0 then
+            if ((.findings // []) | length) == 0 then
               "- 无需要修改的问题。"
             else
               .findings[]
@@ -149,6 +153,23 @@ jobs:
 
           if [ "${reviewed_head}" != "${HEAD_SHA}" ]; then
             echo "Claude reviewed head ${reviewed_head}, expected ${HEAD_SHA}."
+            exit 1
+          fi
+
+          if [ "${verdict}" = "PASS" ] && [ "${finding_count}" -gt 0 ]; then
+            echo "Claude returned PASS with ${finding_count} finding(s)."
+            exit 1
+          fi
+
+          current_head="$(
+            gh pr view "${PR_NUMBER}" \
+              --repo "${REPOSITORY}" \
+              --json headRefOid \
+              --jq '.headRefOid'
+          )"
+
+          if [ "${current_head}" != "${HEAD_SHA}" ]; then
+            echo "PR #${PR_NUMBER} head changed to ${current_head}, expected ${HEAD_SHA}."
             exit 1
           fi
 
