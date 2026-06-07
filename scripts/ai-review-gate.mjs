@@ -5,7 +5,6 @@ export const CODEX_BOT_AUTHORS = new Set(['chatgpt-codex-connector[bot]', 'codex
 export const CLAUDE_BOT_AUTHORS = new Set([
   'claude-bot[bot]',
   'cloud-code-review[bot]',
-  'github-actions[bot]',
   'claude[bot]'
 ]);
 

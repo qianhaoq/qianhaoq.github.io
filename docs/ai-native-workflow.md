@@ -110,7 +110,7 @@ PR preview 的可选方案：
 
 不要把 bot 的 `APPROVE` 当成唯一合并许可。真正阻塞 merge 的机制是 GitHub branch protection 里的 required checks。
 
-当 PR 修改 Claude review workflow 本身时，Anthropic action 可能拒绝运行尚未进入默认分支的 workflow 内容。此时不能绕过 required checks，也不能把失败的 optional `claude-review` check 当作通过；应从默认分支运行 `Claude Review Evidence` workflow，对指定 PR/head SHA 生成真实 Claude 证据，再让 `AI Review Gate` 重新读取。
+当 PR 修改 Claude review workflow 本身时，Anthropic action 可能拒绝运行尚未进入默认分支的 workflow 内容。此时不能绕过 required checks，也不能把失败的 optional `claude-review` check 当作通过；应从默认分支运行 `Claude Review Evidence` workflow，对指定 PR/head SHA 生成真实 Claude 证据，再让 `AI Review Gate` 重新读取。这个手动 evidence workflow 必须从默认分支 dispatch，Claude 模型步骤不能持有可被 gate 信任的写权限 token，最终 PASS/FAIL 评论只能由单独的 Claude bot App token 发布；`github-actions[bot]` 评论不作为 Claude PASS evidence。
 
 ## Linear GitHub Integration 设置
 
