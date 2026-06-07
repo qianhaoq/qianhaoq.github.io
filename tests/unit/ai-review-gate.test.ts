@@ -139,4 +139,18 @@ describe('AI review gate contracts', () => {
 
     expect(summary.claude).toMatchObject({ passed: false, evidence: null });
   });
+
+  it('rejects gate-shaped Claude comments from github-actions bot', () => {
+    const summary = summarizeAiReviews({
+      issueComments: [
+        {
+          user: { login: 'github-actions[bot]' },
+          created_at: '2026-06-06T10:16:45Z',
+          body: `## Claude Code Review\n\nHead SHA: ${headSha}\nVerdict: PASS`
+        }
+      ]
+    }, { headSha, headDate });
+
+    expect(summary.claude).toMatchObject({ passed: false, evidence: null });
+  });
 });

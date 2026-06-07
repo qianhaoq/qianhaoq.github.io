@@ -10,7 +10,9 @@ describe('manual Claude evidence workflow contract', () => {
     expect(content).toContain('workflow_dispatch:');
     expect(content).toContain('pr_number:');
     expect(content).toContain('head_sha:');
-    expect(content).toContain('pull-requests: write');
+    expect(content).toContain('pull-requests: read');
+    expect(content).toContain('Require default branch dispatch');
+    expect(content).toContain('Claude Review Evidence must run from ${DEFAULT_BRANCH}');
     expect(content).not.toContain('pull_request:');
     expect(content).not.toContain('pull_request_target:');
   });
@@ -21,7 +23,8 @@ describe('manual Claude evidence workflow contract', () => {
     expect(content).toContain('actual_head="$(');
     expect(content).toContain('gh pr diff "${PR_NUMBER}" --repo "${REPOSITORY}"');
     expect(content).toContain('claude-pr-review-context.md');
-    expect(content).toContain('github_token: ${{ github.token }}');
+    expect(content).not.toContain('github_token: ${{ github.token }}');
+    expect(content).toContain('--allowedTools Read');
     expect(content).toContain('uses: anthropics/claude-code-action@v1');
     expect(content).toContain('uses: actions/create-github-app-token@v3');
     expect(content).toContain('reviewed_head="$(jq -r');
