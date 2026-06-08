@@ -8,6 +8,7 @@ Given('本地作者入口可用', function () {
 
   this.packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
   assert.equal(this.packageJson.scripts.author, 'tsx scripts/author.ts');
+  assert.equal(this.packageJson.scripts['author:workbench'], 'tsx scripts/author-workbench.ts');
   assert.equal(this.packageJson.scripts.write, 'tsx scripts/write-post.ts');
 });
 
@@ -37,10 +38,16 @@ Then('公开读者导航暴露写作指南', function () {
   assert.match(this.readerNavigation, /label: '写作指南'/);
 });
 
+Then('写作指南指向本地 HTML 工作台', function () {
+  assert.match(this.authoringGuide, /pnpm author:workbench/);
+  assert.match(this.authoringGuide, /tools\/author-workbench\.html/);
+  assert.match(this.authoringPage, /pnpm author:workbench/);
+});
+
 Then('写作指南把编辑保留在本地工作流', function () {
   assert.match(this.authoringGuide, /公开站点导航里可以提供“写作指南”入口/);
   assert.match(this.authoringPage, /pnpm write "文章标题"/);
-  assert.match(this.authoringPage, /真实编辑仍在本地仓库和 GitHub 工作流内完成/);
+  assert.match(this.authoringPage, /本地仓库命令、PR 与 GitHub 权限边界内完成/);
 });
 
 Then('公开站点不暴露在线后台能力', function () {
@@ -68,4 +75,43 @@ Then('lint 遇到警告即失败', function () {
 
 Then('PR 质量门禁在浏览器冒烟前先检查元数据', function () {
   assert.equal(this.prQualityScript, 'pnpm pr:metadata && pnpm quality && pnpm browser:smoke');
+});
+
+
+When('我检查本地作者工作台', function () {
+  this.workbench = readFileSync('tools/author-workbench.html', 'utf8');
+  this.authorWorkbenchScript = readFileSync('scripts/author-workbench.ts', 'utf8');
+  this.deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+});
+
+Then('工作台暴露所有文章 schema 字段和校验状态', function () {
+  for (const field of ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'draft', 'hero', 'series', 'linearIssue', 'body']) {
+    assert.match(this.workbench, new RegExp(`id="${field}"`));
+  }
+  assert.match(this.workbench, /校验状态/);
+  assert.match(this.workbench, /validate\(\)/);
+});
+
+Then('工作台在页面内预览编辑结果', function () {
+  assert.match(this.workbench, /最终展示效果预览/);
+  assert.match(this.workbench, /renderPreview/);
+  assert.match(this.workbench, /renderMarkdown/);
+});
+
+Then('工作台通过现有部署流程准备发布 PR', function () {
+  assert.match(this.workbench, /准备发布 PR/);
+  assert.match(this.workbench, /pnpm quality/);
+  assert.match(this.workbench, /Linear issue key/);
+  assert.match(this.workbench, /gh pr create --title/);
+  assert.match(this.workbench, /linearIssueKey/);
+  assert.match(this.workbench, /\.github\/workflows\/deploy\.yml/);
+  assert.match(this.deployWorkflow, /branches: \[main\]/);
+  assert.match(this.deployWorkflow, /actions\/deploy-pages/);
+  assert.match(this.authorWorkbenchScript, /tools', 'author-workbench\.html/);
+});
+
+Then('工作台给出可操作的重试反馈且不存储 token', function () {
+  assert.match(this.workbench, /修正后点击“准备发布 PR”重试/);
+  assert.match(this.workbench, /不在公开站点绕过 review 直接上线|不会绕过 PR review/);
+  assert.doesNotMatch(this.workbench, /name="token"|type="password"|localStorage\.setItem\(['"]token/);
 });

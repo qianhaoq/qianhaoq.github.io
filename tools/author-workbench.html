@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hao Qian 本地作者工作台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --muted: #5b6661;
+      --text: #17201c;
+      --line: #d9e0db;
+      --accent: #0d7c75;
+      --danger: #b42318;
+      --ok: #067647;
+      --warn: #a46b16;
+      --shadow: 0 18px 70px rgb(23 32 28 / 12%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #f6f7f4 0%, #e8eee9 100%);
+      color: var(--text);
+    }
+
+    header, main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+
+    header { padding: 44px 0 20px; }
+
+    .eyebrow { color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+
+    h1 { max-width: 820px; margin: 10px 0 12px; font-size: clamp(36px, 6vw, 72px); line-height: 1.02; }
+
+    .lede { max-width: 820px; color: var(--muted); font-size: 18px; line-height: 1.75; }
+
+    .notice {
+      display: grid;
+      gap: 8px;
+      margin: 24px 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--panel), transparent 8%);
+      box-shadow: var(--shadow);
+    }
+
+    .notice strong { color: var(--accent); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, .9fr); gap: 22px; align-items: start; padding-bottom: 56px; }
+
+    @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+
+    section, aside {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel { padding: 22px; }
+
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+    @media (max-width: 720px) { .field-grid { grid-template-columns: 1fr; } }
+
+    label { display: grid; gap: 7px; font-weight: 750; }
+
+    label span { display: flex; justify-content: space-between; gap: 10px; }
+
+    label small, .hint { color: var(--muted); font-weight: 500; line-height: 1.5; }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: #fbfcfa;
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea { min-height: 360px; resize: vertical; line-height: 1.6; }
+
+    .check-row { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fbfcfa; }
+    .check-row input { width: auto; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+
+    button, .file-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: var(--accent);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.secondary, .file-button { border: 1px solid var(--line); background: #fbfcfa; color: var(--text); }
+    button.warning { background: var(--warn); }
+    input[type="file"] { display: none; }
+
+    .status { margin-top: 18px; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: #fbfcfa; line-height: 1.7; }
+    .status.ok { border-color: color-mix(in srgb, var(--ok), transparent 45%); color: var(--ok); }
+    .status.error { border-color: color-mix(in srgb, var(--danger), transparent 45%); color: var(--danger); }
+
+    .validation-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .validation-list li { padding: 10px 12px; border-radius: 12px; background: #fbfcfa; color: var(--muted); }
+    .validation-list li.valid { color: var(--ok); }
+    .validation-list li.invalid { color: var(--danger); }
+
+    .preview-card { position: sticky; top: 18px; }
+    .preview-body { padding-top: 8px; line-height: 1.76; }
+    .preview-body h1, .preview-body h2, .preview-body h3 { margin: 20px 0 8px; line-height: 1.14; }
+    .preview-body p { margin: 12px 0; }
+    .preview-body code, pre { border-radius: 10px; background: #eef3ef; }
+    .preview-body code { padding: 2px 6px; }
+    pre { overflow: auto; padding: 14px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; color: var(--muted); }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; background: #fbfcfa; font-size: 13px; }
+    .commands { white-space: pre-wrap; overflow-x: auto; padding: 14px; border-radius: 14px; background: #101411; color: #edf3ef; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Local Author Workbench</div>
+    <h1>本地作者工作台：编辑、预览并准备发布 PR</h1>
+    <p class="lede">这个 HTML 文件只在本地仓库使用，用来编辑 <code>src/content/posts/*.mdx</code> 草稿。页面不会连接 GitHub、不会保存 token，也不会绕过 PR review；“发布”会按现有 GitHub Pages 链路准备发布 PR 清单。</p>
+    <div class="notice" role="note">
+      <strong>发布链路对应关系</strong>
+      <span>本页生成/更新 MDX → 作者运行 <code>pnpm quality</code> → 创建含对应 Linear issue key 的 PR → PR 合入 <code>main</code> → <code>.github/workflows/deploy.yml</code> 使用 <code>withastro/action</code> 构建并部署到 GitHub Pages。</span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel" aria-labelledby="editor-title">
+      <h2 id="editor-title">作品字段</h2>
+      <p class="hint">字段与 <code>src/content.config.ts</code> 的 Astro content schema 对齐；红色校验项修正后可重试生成或发布准备。</p>
+
+      <div class="actions" aria-label="导入操作">
+        <label class="file-button" for="file-input">选择已有 MDX</label>
+        <input id="file-input" type="file" accept=".mdx,.md,text/markdown">
+        <button class="secondary" id="sample-button" type="button">填入示例草稿</button>
+      </div>
+
+      <form id="post-form" novalidate>
+        <div class="field-grid">
+          <label><span>标题 <small>必填</small></span><input id="title" name="title" required placeholder="例如：用 AI Coding 重构写作流"></label>
+          <label><span>摘要 <small>必填</small></span><input id="description" name="description" required placeholder="一句话说明这篇文章的价值"></label>
+          <label><span>发布日期 <small>必填</small></span><input id="pubDate" name="pubDate" type="date" required></label>
+          <label><span>更新日期 <small>可选</small></span><input id="updatedDate" name="updatedDate" type="date"></label>
+          <label><span>标签 <small>逗号分隔</small></span><input id="tags" name="tags" placeholder="AI Coding, 工程实践"></label>
+          <label><span>封面 URL <small>可选</small></span><input id="hero" name="hero" type="url" placeholder="https://..."></label>
+          <label><span>系列 <small>可选</small></span><input id="series" name="series" placeholder="长期复盘"></label>
+          <label><span>Linear issue key <small>发布 PR 必填</small></span><input id="linearIssue" name="linearIssue" required pattern="[A-Z]+-[0-9]+" placeholder="ONE-32"></label>
+          <div class="check-row"><input id="draft" name="draft" type="checkbox" checked><label for="draft">保持草稿私有（发布 PR 前改为未勾选）</label></div>
+        </div>
+
+        <label style="margin-top: 16px;"><span>正文 / MDX 内容 <small>必填</small></span><textarea id="body" name="body" required placeholder="## 背景\n\n写下正文。支持常见 Markdown / MDX 文本。"></textarea></label>
+      </form>
+
+      <h2>校验状态</h2>
+      <ul class="validation-list" id="validation-list" aria-live="polite"></ul>
+
+      <div class="actions">
+        <button id="download-button" type="button">生成/更新 MDX 文件</button>
+        <button class="warning" id="publish-button" type="button">准备发布 PR</button>
+        <button class="secondary" id="copy-button" type="button">复制 PR 清单</button>
+      </div>
+      <div id="status" class="status" role="status">等待编辑。字段变化会实时刷新预览与校验。</div>
+      <pre class="commands" id="commands" aria-label="发布 PR 清单"></pre>
+    </section>
+
+    <aside class="panel preview-card" aria-labelledby="preview-title">
+      <h2 id="preview-title">最终展示效果预览</h2>
+      <article class="preview-body" id="preview"></article>
+    </aside>
+  </main>
+
+  <script>
+    const fields = ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'hero', 'series', 'linearIssue', 'draft', 'body'];
+    const state = Object.fromEntries(fields.map((field) => [field, document.getElementById(field)]));
+    const validationList = document.getElementById('validation-list');
+    const statusBox = document.getElementById('status');
+    const preview = document.getElementById('preview');
+    const commands = document.getElementById('commands');
+    let currentFileName = '';
+
+    const today = new Date().toISOString().slice(0, 10);
+    state.pubDate.value = today;
+    state.body.value = '## 背景\n\n这里写作品正文。\n\n## 关键判断\n\n- 第一条判断\n- 第二条判断\n\n## 下一步\n\n发布前取消草稿状态，并创建 PR。';
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    function slugify(value) {
+      const slug = value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      return slug || `post-${Date.now()}`;
+    }
+
+    function tags() {
+      return state.tags.value.split(',').map((tag) => tag.trim()).filter(Boolean);
+    }
+
+    function validate({ requireIssue = false } = {}) {
+      const issue = linearIssueKey();
+      const issueKeyValid = requireIssue
+        ? /^[A-Z]+-[0-9]+$/.test(issue)
+        : issue === '' || /^[A-Z]+-[0-9]+$/.test(issue);
+      const items = [
+        ['title', '标题必填', state.title.value.trim().length > 0, '填写清晰标题。'],
+        ['description', '摘要必填', state.description.value.trim().length > 0, '补充一句话摘要。'],
+        ['pubDate', '发布日期必填', /^\d{4}-\d{2}-\d{2}$/.test(state.pubDate.value), '选择有效发布日期。'],
+        ['draft', 'draft 必须是明确布尔值', typeof state.draft.checked === 'boolean', '保留或取消草稿勾选。'],
+        ['body', '正文必填', state.body.value.trim().length > 0, '写入正文内容。'],
+        ['linearIssue', requireIssue ? 'Linear issue key 必填' : 'Linear issue key 发布前填写', issueKeyValid, requireIssue ? '填写当前发布任务的 Linear issue key，例如 ONE-32。' : '可先留空保存草稿；发布 PR 前填写当前 Linear issue key，例如 ONE-32。'],
+        ['hero', '封面 URL 可选但必须有效', !state.hero.value || /^https?:\/\//.test(state.hero.value), '使用 http(s) URL 或留空。']
+      ];
+      return items;
+    }
+
+    function renderValidation() {
+      validationList.innerHTML = validate().map(([, label, valid, fix]) => `<li class="${valid ? 'valid' : 'invalid'}">${valid ? '✓' : '✕'} ${label}<br><small>${fix}</small></li>`).join('');
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = escapeHtml(markdown).split('\n');
+      const html = [];
+      let inList = false;
+      let inCode = false;
+      for (const line of lines) {
+        if (line.startsWith('```')) {
+          html.push(inCode ? '</code></pre>' : '<pre><code>');
+          inCode = !inCode;
+          continue;
+        }
+        if (inCode) { html.push(`${line}\n`); continue; }
+        if (/^###\s+/.test(line)) html.push(`<h3>${line.replace(/^###\s+/, '')}</h3>`);
+        else if (/^##\s+/.test(line)) html.push(`<h2>${line.replace(/^##\s+/, '')}</h2>`);
+        else if (/^#\s+/.test(line)) html.push(`<h1>${line.replace(/^#\s+/, '')}</h1>`);
+        else if (/^-\s+/.test(line)) {
+          if (!inList) { html.push('<ul>'); inList = true; }
+          html.push(`<li>${line.replace(/^-\s+/, '')}</li>`);
+        } else {
+          if (inList) { html.push('</ul>'); inList = false; }
+          if (line.trim()) html.push(`<p>${line}</p>`);
+        }
+      }
+      if (inList) html.push('</ul>');
+      if (inCode) html.push('</code></pre>');
+      return html.join('\n');
+    }
+
+    function renderPreview() {
+      const tagHtml = tags().map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join('');
+      preview.innerHTML = `
+        <div class="eyebrow">${state.draft.checked ? 'Draft Preview' : 'Publish Preview'}</div>
+        <h1>${escapeHtml(state.title.value || '未命名作品')}</h1>
+        <p>${escapeHtml(state.description.value || '请填写摘要。')}</p>
+        <div class="meta"><span class="pill">pubDate: ${escapeHtml(state.pubDate.value || '未设置')}</span>${state.updatedDate.value ? `<span class="pill">updatedDate: ${escapeHtml(state.updatedDate.value)}</span>` : ''}${tagHtml}${state.series.value ? `<span class="pill">series: ${escapeHtml(state.series.value)}</span>` : ''}</div>
+        ${state.hero.value ? `<img alt="封面预览" src="${escapeHtml(state.hero.value)}">` : ''}
+        ${renderMarkdown(state.body.value || '')}`;
+    }
+
+    function frontmatter() {
+      const lines = [
+        '---',
+        `title: ${JSON.stringify(state.title.value.trim())}`,
+        `description: ${JSON.stringify(state.description.value.trim())}`,
+        `pubDate: ${state.pubDate.value}`
+      ];
+      if (state.updatedDate.value) lines.push(`updatedDate: ${state.updatedDate.value}`);
+      lines.push(`tags: [${tags().map((tag) => JSON.stringify(tag)).join(', ')}]`);
+      lines.push(`draft: ${state.draft.checked ? 'true' : 'false'}`);
+      if (state.hero.value) lines.push(`hero: ${JSON.stringify(state.hero.value.trim())}`);
+      if (state.series.value) lines.push(`series: ${JSON.stringify(state.series.value.trim())}`);
+      lines.push('---', '', state.body.value.trim(), '');
+      return lines.join('\n');
+    }
+
+    function fileName() {
+      return currentFileName || `${state.pubDate.value || today}-${slugify(state.title.value)}.mdx`;
+    }
+
+    function linearIssueKey() {
+      return state.linearIssue.value.trim().toUpperCase();
+    }
+
+    function shellQuote(value) {
+      return `'${String(value).replace(/'/g, `'\\''`)}'`;
+    }
+
+    function buildCommands() {
+      const relativePath = `src/content/posts/${fileName()}`;
+      const issue = linearIssueKey() || 'ONE-XX';
+      const branch = `${issue.toLowerCase()}-${slugify(state.title.value || 'author-workbench-post')}`;
+      const title = `${issue} 发布作品：${state.title.value.trim() || '未命名作品'}`;
+      // Reuse the full PR template sections so workbench-created PRs carry the same
+      // contract (Acceptance + BDD evidence + deployment/review/static-boundary) and pass
+      // the metadata gate; content-only posts use the explicit no-BDD waiver.
+      const body = [
+        '## Linear', '',
+        `- Issue: ${issue}`,
+        '- Project: AI-native qianhaoq.github.io 研发工作流', '',
+        '## Summary', '',
+        '- 通过本地作者工作台新增/更新文章并准备发布。', '',
+        '## Acceptance', '',
+        `- ${issue}: 本地作者工作台生成 MDX，取消 draft 后通过 PR 合入 main。`,
+        '- pnpm quality 通过后再合入；合入触发 .github/workflows/deploy.yml 发布。', '',
+        '## BDD / Tests', '',
+        '- 无需 BDD：新增文章内容，未改动用户可见行为代码。', '',
+        '## Deployment Verification', '',
+        '- [ ] merge 后通过 GitHub Pages 真实 URL 的 Deployment Verification。', '',
+        '## Review Evidence', '',
+        '- [ ] 已触发 Codex review，并等待 Claude review workflow。',
+        '- [ ] 合并前必须通过 Quality Gate 和 AI Review Gate。', '',
+        '## Static Boundary', '',
+        '- [x] 未新增公开 /admin、登录态、token 保存或服务端写仓库能力。',
+        '- [x] 未让 draft: true 内容进入公开页面、RSS、sitemap 或搜索索引。'
+      ].join('\n');
+      return `# 1. 保存本页生成的 MDX 到 ${relativePath}\n# 2. 发布前运行完整质量门禁\npnpm quality\n\n# 3. 用 PR 触发现有发布链路（PR 合入 main 后 GitHub Pages 自动部署）\ngit checkout -b ${branch}\ngit add ${shellQuote(relativePath)}\ngit commit -m "通过本地工作台发布作品"\ngit push -u origin ${branch}\ngh pr create --title ${shellQuote(title)} --body ${shellQuote(body)}`;
+    }
+
+    function update() {
+      renderValidation();
+      renderPreview();
+      commands.textContent = buildCommands();
+    }
+
+    async function saveFile() {
+      const invalid = validate().filter(([, , valid]) => !valid);
+      if (invalid.length > 0) {
+        statusBox.className = 'status error';
+        statusBox.textContent = `生成失败：请先修正 ${invalid.map(([, label]) => label).join('、')}，修正后可重试。`;
+        return;
+      }
+      const blob = new Blob([frontmatter()], { type: 'text/markdown;charset=utf-8' });
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({ suggestedName: fileName(), types: [{ description: 'MDX post', accept: { 'text/markdown': ['.mdx'] } }] });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          statusBox.className = 'status ok';
+          statusBox.textContent = `已写入 ${handle.name}。请放在 src/content/posts/ 下，并继续准备发布 PR。`;
+          return;
+        } catch (error) {
+          if (error.name !== 'AbortError') statusBox.textContent = `文件写入失败：${error.message}。已改用下载方式，请保存后重试。`;
+        }
+      }
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName();
+      link.click();
+      URL.revokeObjectURL(link.href);
+      statusBox.className = 'status ok';
+      statusBox.textContent = `已生成 ${fileName()} 下载文件。请保存到 src/content/posts/ 后继续发布 PR。`;
+    }
+
+    function preparePublish() {
+      const invalid = validate({ requireIssue: true }).filter(([, , valid]) => !valid);
+      if (invalid.length > 0) {
+        statusBox.className = 'status error';
+        statusBox.textContent = `发布准备失败：${invalid.map(([, label, , fix]) => `${label}（${fix}）`).join('；')}修正后点击“准备发布 PR”重试。`;
+        return false;
+      }
+      if (state.draft.checked) {
+        statusBox.className = 'status error';
+        statusBox.textContent = '发布准备失败：当前仍是 draft: true。若要发布，请取消“保持草稿私有”，再次点击准备发布 PR；若只是保存草稿，可继续生成 MDX。';
+        return false;
+      }
+      statusBox.className = 'status ok';
+      statusBox.textContent = `发布 PR 清单已生成。请先运行 pnpm quality，通过后创建包含 ${linearIssueKey()} 的 PR；合入 main 后复用 GitHub Actions 发布到 GitHub Pages。`;
+      return true;
+    }
+
+    function parseFrontmatter(text) {
+      const match = text.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+      if (!match) return { body: text };
+      const data = {};
+      for (const line of match[1].split('\n')) {
+        const [key, ...rest] = line.split(':');
+        if (!key || rest.length === 0) continue;
+        data[key.trim()] = rest.join(':').trim();
+      }
+      return { data, body: match[2] };
+    }
+
+    function unquote(value = '') { return value.replace(/^['"]|['"]$/g, ''); }
+
+    document.getElementById('file-input').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      currentFileName = file.name;
+      const parsed = parseFrontmatter(await file.text());
+      const data = parsed.data || {};
+      state.title.value = unquote(data.title || '');
+      state.description.value = unquote(data.description || '');
+      state.pubDate.value = data.pubDate || today;
+      state.updatedDate.value = data.updatedDate || '';
+      state.tags.value = (data.tags || '').replace(/^\[/, '').replace(/\]$/, '').replace(/"/g, '');
+      state.draft.checked = data.draft !== 'false';
+      state.hero.value = unquote(data.hero || '');
+      state.series.value = unquote(data.series || '');
+      state.body.value = parsed.body.trim();
+      statusBox.className = 'status ok';
+      statusBox.textContent = `已载入 ${file.name}，可继续编辑、预览或准备发布 PR。`;
+      update();
+    });
+
+    document.getElementById('sample-button').addEventListener('click', () => {
+      state.title.value = '本地作者工作台示例';
+      state.description.value = '用可视化 HTML 页面编辑 MDX 草稿，并通过 PR 复用 GitHub Pages 发布链路。';
+      state.tags.value = 'AI Coding, 工程实践';
+      state.draft.checked = true;
+      update();
+    });
+
+    document.getElementById('download-button').addEventListener('click', saveFile);
+    document.getElementById('publish-button').addEventListener('click', preparePublish);
+    document.getElementById('copy-button').addEventListener('click', async () => {
+      if (!preparePublish()) return;
+      await navigator.clipboard.writeText(commands.textContent);
+      statusBox.className = 'status ok';
+      statusBox.textContent = '已复制发布 PR 清单。';
+    });
+
+    for (const field of fields) state[field].addEventListener('input', update);
+    state.draft.addEventListener('change', update);
+    update();
+  </script>
+</body>
+</html>
