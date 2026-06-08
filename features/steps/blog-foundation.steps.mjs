@@ -10,12 +10,12 @@ const starterPostPath = 'posts/2026-06-05-start-here/index.html';
 
 const readDist = (relativePath) => readFileSync(path.join(distDir, relativePath), 'utf8');
 
-Given('the production site has been built', function () {
+Given('生产站点已构建', function () {
   assert.ok(existsSync(path.join(distDir, 'index.html')), 'Run pnpm build before pnpm bdd.');
   assert.ok(existsSync(path.join(distDir, starterPostPath)), 'Expected starter post page to exist.');
 });
 
-When('I inspect the public blog entry points', function () {
+When('我检查公开博客入口', function () {
   const publicEntryPoints = [
     'index.html',
     'posts/index.html',
@@ -32,21 +32,21 @@ When('I inspect the public blog entry points', function () {
     .join('\n');
 });
 
-Then('the published starter post is available', function () {
+Then('已发布的起始文章可访问', function () {
   assert.match(this.publicText, /这个博客从这里开始/);
   assert.match(this.publicText, /\/posts\/2026-06-05-start-here\//);
 });
 
-Then('the deployment verification signal is visible on the homepage', function () {
+Then('首页可见部署验证信号', function () {
   const homepage = readDist('index.html');
   assert.match(homepage, /部署验证/);
 });
 
-Then('the draft sample is not exposed in public pages', function () {
+Then('草稿样例不出现在公开页面', function () {
   assert.doesNotMatch(this.publicText, /草稿示例|draft-note|Draft/);
 });
 
-When('I inspect the search, feed, and sitemap artifacts', function () {
+When('我检查搜索、订阅源和 sitemap 产物', function () {
   const fragmentDir = path.join(distDir, 'pagefind', 'fragment');
   const fragmentFiles = readdirSync(fragmentDir).filter((file) => file.endsWith('.pf_fragment'));
   const pagefindFragments = fragmentFiles
@@ -58,19 +58,19 @@ When('I inspect the search, feed, and sitemap artifacts', function () {
   this.sitemap = load(readDist('sitemap-0.xml'), { xmlMode: true });
 });
 
-Then('Pagefind indexes the published starter post', function () {
+Then('Pagefind 已索引已发布的起始文章', function () {
   assert.match(this.searchText, /这个博客从这里开始/);
   assert.match(this.searchText, /\/posts\/2026-06-05-start-here\//);
   assert.doesNotMatch(this.searchText, /草稿示例|draft-note|Draft/);
 });
 
-Then('RSS includes the published starter post', function () {
+Then('RSS 包含已发布的起始文章', function () {
   const item = this.rss('item').first();
   assert.equal(item.find('title').text(), '这个博客从这里开始');
   assert.equal(item.find('link').text(), 'https://qianhaoq.github.io/posts/2026-06-05-start-here/');
 });
 
-Then('the sitemap includes the published starter post', function () {
+Then('sitemap 包含已发布的起始文章', function () {
   const urls = this.sitemap('url loc')
     .map((_, element) => this.sitemap(element).text())
     .toArray();

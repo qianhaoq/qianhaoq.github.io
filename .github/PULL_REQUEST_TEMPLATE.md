@@ -14,12 +14,15 @@
 
 ## BDD / Tests
 
+> 默认每个 PR 都必须给出 BDD 证据。`scripts/check-pr-metadata.mjs` 会强制要求下面**二选一**：
+> (1) 在 `验证结果` 围栏块里贴入真实证据（`pnpm bdd` / `pnpm quality` 输出，或 `features/**` 变更说明）；
+> 或 (2) 写一行明确豁免，格式 `无需 BDD：<原因>`（原因不能是占位符）。
+
 - [ ] 用户可见行为已同步 `features/**/*.feature` 和 step definitions，或本 PR 不改变用户可见行为
 - [ ] `pnpm quality` 通过，或下方说明只运行最小检查的原因
 - [ ] `pnpm quality:pr` 通过，或下方说明未运行原因
-- [ ] 代码仓库或用户可见行为改动有 BDD 验证证据；如果无需 BDD，说明原因
 
-验证结果：
+验证结果（贴 `pnpm bdd` / `pnpm quality` 输出或 `features/**` 变更；若无需 BDD 则改写为 `无需 BDD：<原因>`）：
 
 ```text
 

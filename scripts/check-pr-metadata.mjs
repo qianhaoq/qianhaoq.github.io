@@ -7,8 +7,7 @@ const PLACEHOLDER_VALUES = new Set(['-', 'todo', 'tbd', 'n/a', 'none']);
 const PLACEHOLDER_PATTERNS = [
   /^required:/i,
   /^replace\b/i,
-  /^<LINEAR-ISSUE-KEY>$/i,
-  /^<ACCEPTANCE-CRITERION-\d+>$/i
+  /^<[^>]+>$/ // any fully angle-bracketed placeholder, e.g. <原因>, <reason>, <LINEAR-ISSUE-KEY>
 ];
 
 const normalize = (value) => (value ?? '').replace(/\r\n/g, '\n').trim();
@@ -42,6 +41,60 @@ export const findLinearIssueKeys = ({ title = '', body = '' }) =>
 export const hasLinearIssueKey = ({ title = '', body = '' }) =>
   findLinearIssueKeys({ title, body }).length > 0;
 
+export const extractFencedBlock = (section) => {
+  const match = normalize(section).match(/```[^\n]*\n([\s\S]*?)```/);
+  return match ? normalize(match[1]) : '';
+};
+
+export const extractFencedBlocks = (section) => {
+  const normalized = normalize(section);
+  const pattern = /```[^\n]*\n([\s\S]*?)```/g;
+  const blocks = [];
+  let match;
+  while ((match = pattern.exec(normalized)) !== null) {
+    blocks.push(normalize(match[1]));
+  }
+  return blocks;
+};
+
+// Evidence must show a BDD-specific verification RESULT, not a command name, a generic
+// test count, or a loose keyword. A bare `pnpm quality` token ("pnpm quality 未运行") or a
+// non-BDD runner count ("Tests 51 passed") must not satisfy a gate named for BDD evidence.
+// Accept only artifacts that prove the BDD suite ran or changed: a cucumber scenario count
+// (`8 scenarios` / `8 个场景`), or a `features/**/<name>.feature` file reference (the docs
+// allow nested feature paths, so accept any depth).
+const BDD_EVIDENCE_PATTERN = /\d+\s+scenarios?\b|\d+\s*个场景|features\/(?:[\w-]+\/)*[\w-]+\.feature/i;
+
+const BDD_WAIVER_PATTERN = /^(?:无需\s*bdd|no\s+bdd(?:\s+needed)?)\s*[:：]?\s*(.*)$/i;
+
+const hasBddWaiver = (section) =>
+  section
+    .split('\n')
+    .map(stripListSyntax)
+    .some((line) => {
+      const match = line.match(BDD_WAIVER_PATTERN);
+      if (!match) return false;
+      const reason = match[1].trim();
+      // The contract only requires a real, non-placeholder reason — short but genuine ones
+      // like "纯文档" or "typo" are valid, so reject only empty/placeholder reasons.
+      return reason.length >= 2 && !isPlaceholderLine(reason);
+    });
+
+export const hasBddEvidence = (body) => {
+  const section = extractMarkdownSection(body, 'BDD / Tests');
+  if (!section) return false;
+
+  // An explicit, non-placeholder waiver is an accepted escape hatch.
+  if (hasBddWaiver(section)) return true;
+
+  // Otherwise require real verification evidence inside a fenced block. The template's
+  // checkboxes mention `pnpm quality` / `features/**` as guidance, so evidence must live
+  // in a fenced verification block. Scan every fence (not just the first) so authors can
+  // keep the empty template block and append real output below it, and require the
+  // content to reference actual verification rather than arbitrary filler text.
+  return extractFencedBlocks(section).some((block) => BDD_EVIDENCE_PATTERN.test(block));
+};
+
 export const hasMeaningfulAcceptance = (body) => {
   const acceptance = extractMarkdownSection(body, 'Acceptance');
   if (!acceptance) return false;
@@ -69,6 +122,10 @@ export const validatePrMetadata = ({ title = '', body = '' }) => {
 
   if (!hasMeaningfulAcceptance(body)) {
     errors.push('PR body must include a non-placeholder ## Acceptance section.');
+  }
+
+  if (!hasBddEvidence(body)) {
+    errors.push('PR body must include BDD evidence in the ## BDD / Tests section (verification output or a features/** change), or an explicit no-BDD reason such as "无需 BDD：原因".');
   }
 
   return {
@@ -137,5 +194,5 @@ if (isDirectRun) {
     process.exit(1);
   }
 
-  console.log('PR metadata includes a Linear issue key and meaningful acceptance criteria.');
+  console.log('PR metadata includes a Linear issue key, meaningful acceptance criteria, and BDD evidence.');
 }
