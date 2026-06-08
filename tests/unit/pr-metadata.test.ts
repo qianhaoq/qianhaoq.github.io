@@ -198,6 +198,19 @@ ${bddSection}`;
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\nnot run yet\n```'))).toBe(false);
     });
 
+    it('rejects loose keywords that any prose could contain', () => {
+      // Regression: the evidence pattern must not be satisfied by generic words like
+      // "passed" / "通过" / a bare "features/" path fragment.
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\nall checks passed\n```'))).toBe(false);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\n请通过以下方式验证\n```'))).toBe(false);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\nsee features/ for details\n```'))).toBe(false);
+    });
+
+    it('accepts concrete verification artifacts', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n```text\n8 个场景全部通过\n```'))).toBe(true);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n```text\nUpdated features/site-pages.feature\n```'))).toBe(true);
+    });
+
     it('accepts an explicit Chinese no-BDD waiver with a reason', () => {
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- 无需 BDD：仅调整内部脚本注释，无用户可见行为变化'))).toBe(true);
     });
