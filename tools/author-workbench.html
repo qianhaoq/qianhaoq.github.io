@@ -128,7 +128,7 @@
 </head>
 <body>
   <header>
-    <div class="eyebrow">ONE-32 · Local Author Workbench</div>
+    <div class="eyebrow">Local Author Workbench</div>
     <h1>本地作者工作台：编辑、预览并准备发布 PR</h1>
     <p class="lede">这个 HTML 文件只在本地仓库使用，用来编辑 <code>src/content/posts/*.mdx</code> 草稿。页面不会连接 GitHub、不会保存 token，也不会绕过 PR review；“发布”会按现有 GitHub Pages 链路准备发布 PR 清单。</p>
     <div class="notice" role="note">
@@ -208,14 +208,18 @@
       return state.tags.value.split(',').map((tag) => tag.trim()).filter(Boolean);
     }
 
-    function validate() {
+    function validate({ requireIssue = false } = {}) {
+      const issue = linearIssueKey();
+      const issueKeyValid = requireIssue
+        ? /^[A-Z]+-[0-9]+$/.test(issue)
+        : issue === '' || /^[A-Z]+-[0-9]+$/.test(issue);
       const items = [
         ['title', '标题必填', state.title.value.trim().length > 0, '填写清晰标题。'],
         ['description', '摘要必填', state.description.value.trim().length > 0, '补充一句话摘要。'],
         ['pubDate', '发布日期必填', /^\d{4}-\d{2}-\d{2}$/.test(state.pubDate.value), '选择有效发布日期。'],
         ['draft', 'draft 必须是明确布尔值', typeof state.draft.checked === 'boolean', '保留或取消草稿勾选。'],
         ['body', '正文必填', state.body.value.trim().length > 0, '写入正文内容。'],
-        ['linearIssue', 'Linear issue key 必填', /^[A-Z]+-[0-9]+$/.test(linearIssueKey()), '填写当前发布任务的 Linear issue key，例如 ONE-32。'],
+        ['linearIssue', requireIssue ? 'Linear issue key 必填' : 'Linear issue key 发布前填写', issueKeyValid, requireIssue ? '填写当前发布任务的 Linear issue key，例如 ONE-32。' : '可先留空保存草稿；发布 PR 前填写当前 Linear issue key，例如 ONE-32。'],
         ['hero', '封面 URL 可选但必须有效', !state.hero.value || /^https?:\/\//.test(state.hero.value), '使用 http(s) URL 或留空。']
       ];
       return items;
@@ -338,19 +342,20 @@
     }
 
     function preparePublish() {
-      const invalid = validate().filter(([, , valid]) => !valid);
+      const invalid = validate({ requireIssue: true }).filter(([, , valid]) => !valid);
       if (invalid.length > 0) {
         statusBox.className = 'status error';
         statusBox.textContent = `发布准备失败：${invalid.map(([, label, , fix]) => `${label}（${fix}）`).join('；')}修正后点击“准备发布 PR”重试。`;
-        return;
+        return false;
       }
       if (state.draft.checked) {
         statusBox.className = 'status error';
         statusBox.textContent = '发布准备失败：当前仍是 draft: true。若要发布，请取消“保持草稿私有”，再次点击准备发布 PR；若只是保存草稿，可继续生成 MDX。';
-        return;
+        return false;
       }
       statusBox.className = 'status ok';
       statusBox.textContent = `发布 PR 清单已生成。请先运行 pnpm quality，通过后创建包含 ${linearIssueKey()} 的 PR；合入 main 后复用 GitHub Actions 发布到 GitHub Pages。`;
+      return true;
     }
 
     function parseFrontmatter(text) {
@@ -398,6 +403,7 @@
     document.getElementById('download-button').addEventListener('click', saveFile);
     document.getElementById('publish-button').addEventListener('click', preparePublish);
     document.getElementById('copy-button').addEventListener('click', async () => {
+      if (!preparePublish()) return;
       await navigator.clipboard.writeText(commands.textContent);
       statusBox.className = 'status ok';
       statusBox.textContent = '已复制发布 PR 清单。';
