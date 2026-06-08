@@ -58,11 +58,12 @@ export const extractFencedBlocks = (section) => {
   return blocks;
 };
 
-// Evidence must reference a concrete verification artifact, not loose keywords such as
-// "all checks passed" / "请通过验证" / "see features/" that any prose could contain.
-// Accepted signals: a `pnpm bdd`/`pnpm quality` invocation, a cucumber scenario count
-// (`8 scenarios` / `8 个场景`), or a specific `features/<name>.feature` file reference.
-const BDD_EVIDENCE_PATTERN = /pnpm\s+(?:bdd|quality)\b|\d+\s+scenarios?\b|\d+\s*个场景|features\/[\w-]+\.feature/i;
+// Evidence must show a verification RESULT, not just a command name or loose keyword.
+// A bare `pnpm quality` token is insufficient: "pnpm quality 未运行" / "do not run pnpm bdd"
+// would otherwise satisfy the gate. Accept only concrete result artifacts that real tool
+// output contains: a cucumber scenario count (`8 scenarios` / `8 个场景`), a passing-test
+// count (`50 passed`), or a specific `features/<name>.feature` file reference.
+const BDD_EVIDENCE_PATTERN = /\d+\s+scenarios?\b|\d+\s*个场景|\d+\s+passed\b|features\/[\w-]+\.feature/i;
 
 const BDD_WAIVER_PATTERN = /^(?:无需\s*bdd|no\s+bdd(?:\s+needed)?)\s*[:：]?\s*(.*)$/i;
 

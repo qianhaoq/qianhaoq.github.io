@@ -32,7 +32,8 @@ const validBody = `## Linear
 验证结果：
 
 \`\`\`text
-pnpm quality ✅ (lint, check, unit:gate, build, bdd 全部通过)
+pnpm quality ✅ lint/check/unit:gate/build/bdd
+8 scenarios (8 passed) / 50 tests passed
 \`\`\``;
 
 describe('PR metadata gate contracts', () => {
@@ -187,7 +188,13 @@ ${bddSection}`;
     });
 
     it('accepts a filled verification block as evidence', () => {
-      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm quality ✅ lint/check/unit/build/bdd\n```'))).toBe(true);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm quality ✅\n8 scenarios (8 passed)\n```'))).toBe(true);
+    });
+
+    it('rejects a bare command name that claims no successful run', () => {
+      // Regression: command tokens alone (especially negated) must not satisfy the gate.
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm quality 未运行，待 CI 验证\n```'))).toBe(false);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\ndo not run pnpm bdd\n```'))).toBe(false);
     });
 
     it('accepts evidence in a later fence when the template block stays empty', () => {
