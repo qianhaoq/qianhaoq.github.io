@@ -10,7 +10,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p class="eyebrow">Authoring</p>
     <h1>写作指南</h1>
     <p>
-      这个页面是公开站点里的作者入口说明，不是在线后台。文章创建、预览、验证和发布仍在本地仓库命令与 GitHub 权限边界内完成。
+      这个页面是公开站点里的作者入口说明，不是在线后台。可视化编辑请打开本地仓库里的 HTML 作者工作台；文章创建、预览、验证和发布仍在本地仓库命令、PR 与 GitHub 权限边界内完成。
     </p>
   </section>
 
@@ -24,20 +24,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </article>
       <article class="workflow-card">
         <span class="step-index">02</span>
-        <h2>创建私有草稿</h2>
-        <p>新文章默认写入 `src/content/posts/`，并保持 `draft: true`。</p>
-        <code>pnpm write "文章标题"</code>
+        <h2>打开 HTML 工作台</h2>
+        <p>本地页面编辑 schema 字段、正文，并实时查看校验状态和作品预览。</p>
+        <code>pnpm author:workbench</code>
       </article>
       <article class="workflow-card">
         <span class="step-index">03</span>
-        <h2>本地预览与检查</h2>
-        <p>先本地预览，再用完整门禁覆盖构建、单测、BDD 和静态产物。</p>
-        <code>pnpm dev</code>
+        <h2>保存私有草稿</h2>
+        <p>新文章写入 `src/content/posts/`，默认保持 `draft: true`；准备发布 PR 前再取消草稿。</p>
+        <code>pnpm write "文章标题"</code>
       </article>
       <article class="workflow-card">
         <span class="step-index">04</span>
         <h2>通过 PR 发布</h2>
-        <p>发布前取消草稿状态，PR 通过质量门禁、AI review 和真实部署验证后合并。</p>
+        <p>工作台里的“发布”会准备 PR 清单；PR 通过质量门禁、AI review 和真实部署验证后合入 main 并发布。</p>
         <code>pnpm quality</code>
       </article>
     </div>
@@ -49,8 +49,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <p class="eyebrow">Boundary</p>
         <h2>公开入口只做导航，不做写入</h2>
         <p>
-          GitHub Pages 运行时是纯静态站点，所以这里不会提供登录、token 保存、在线编辑、发布按钮或服务端写仓库能力。
-          需要修改内容时，请回到本地仓库或 GitHub PR 工作流。
+          GitHub Pages 运行时是纯静态站点，所以公开页面不会提供登录、token 保存、在线编辑、发布按钮或服务端写仓库能力。
+          需要修改内容时，请回到本地仓库，使用 <code>tools/author-workbench.html</code> 或 GitHub PR 工作流。
         </p>
         <p>
           更完整的本地说明见仓库里的 <a class="inline-link" href="https://github.com/qianhaoq/qianhaoq.github.io/blob/main/AUTHORING.md">AUTHORING.md</a>。

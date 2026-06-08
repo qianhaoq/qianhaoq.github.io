@@ -8,8 +8,17 @@ Feature: Authoring entry contract
     Then the author can start a draft with one command
     And new authoring posts default to private drafts
     And the public reader navigation exposes the writing guide
+    And the writing guide points to the local HTML workbench
     And the writing guide keeps editing in the local workflow
     And the public site does not expose online admin capabilities
+
+  Scenario: The local HTML workbench supports editing, preview, and publishing PR preparation
+    Given the local authoring entry is available
+    When I inspect the local authoring workbench
+    Then the workbench exposes all post schema fields and validation status
+    And the workbench previews edited work in the page
+    And the workbench prepares a publishing PR through the existing deployment workflow
+    And the workbench gives actionable retry feedback without storing tokens
 
   Scenario: The default quality gate checks lint before publishing contracts
     Given the local authoring entry is available

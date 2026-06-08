@@ -8,6 +8,7 @@ Given('the local authoring entry is available', function () {
 
   this.packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
   assert.equal(this.packageJson.scripts.author, 'tsx scripts/author.ts');
+  assert.equal(this.packageJson.scripts['author:workbench'], 'tsx scripts/author-workbench.ts');
   assert.equal(this.packageJson.scripts.write, 'tsx scripts/write-post.ts');
 });
 
@@ -37,10 +38,16 @@ Then('the public reader navigation exposes the writing guide', function () {
   assert.match(this.readerNavigation, /label: '写作指南'/);
 });
 
+Then('the writing guide points to the local HTML workbench', function () {
+  assert.match(this.authoringGuide, /pnpm author:workbench/);
+  assert.match(this.authoringGuide, /tools\/author-workbench\.html/);
+  assert.match(this.authoringPage, /pnpm author:workbench/);
+});
+
 Then('the writing guide keeps editing in the local workflow', function () {
   assert.match(this.authoringGuide, /公开站点导航里可以提供“写作指南”入口/);
   assert.match(this.authoringPage, /pnpm write "文章标题"/);
-  assert.match(this.authoringPage, /真实编辑仍在本地仓库和 GitHub 工作流内完成/);
+  assert.match(this.authoringPage, /本地仓库命令、PR 与 GitHub 权限边界内完成/);
 });
 
 Then('the public site does not expose online admin capabilities', function () {
@@ -68,4 +75,41 @@ Then('lint fails on warnings', function () {
 
 Then('the PR quality gate checks metadata before browser smoke', function () {
   assert.equal(this.prQualityScript, 'pnpm pr:metadata && pnpm quality && pnpm browser:smoke');
+});
+
+
+When('I inspect the local authoring workbench', function () {
+  this.workbench = readFileSync('tools/author-workbench.html', 'utf8');
+  this.authorWorkbenchScript = readFileSync('scripts/author-workbench.ts', 'utf8');
+  this.deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+});
+
+Then('the workbench exposes all post schema fields and validation status', function () {
+  for (const field of ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'draft', 'hero', 'series', 'body']) {
+    assert.match(this.workbench, new RegExp(`id="${field}"`));
+  }
+  assert.match(this.workbench, /校验状态/);
+  assert.match(this.workbench, /validate\(\)/);
+});
+
+Then('the workbench previews edited work in the page', function () {
+  assert.match(this.workbench, /最终展示效果预览/);
+  assert.match(this.workbench, /renderPreview/);
+  assert.match(this.workbench, /renderMarkdown/);
+});
+
+Then('the workbench prepares a publishing PR through the existing deployment workflow', function () {
+  assert.match(this.workbench, /准备发布 PR/);
+  assert.match(this.workbench, /pnpm quality/);
+  assert.match(this.workbench, /gh pr create --title "ONE-32/);
+  assert.match(this.workbench, /\.github\/workflows\/deploy\.yml/);
+  assert.match(this.deployWorkflow, /branches: \[main\]/);
+  assert.match(this.deployWorkflow, /actions\/deploy-pages/);
+  assert.match(this.authorWorkbenchScript, /tools', 'author-workbench\.html/);
+});
+
+Then('the workbench gives actionable retry feedback without storing tokens', function () {
+  assert.match(this.workbench, /修正后点击“准备发布 PR”重试/);
+  assert.match(this.workbench, /不在公开站点绕过 review 直接上线|不会绕过 PR review/);
+  assert.doesNotMatch(this.workbench, /name="token"|type="password"|localStorage\.setItem\(['"]token/);
 });
