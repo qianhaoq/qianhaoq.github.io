@@ -14,7 +14,7 @@ Draft workflow:
   3. Run pnpm dev for fast preview
   4. Change draft to false when ready to publish
   5. Run pnpm quality
-  6. Push main to publish
+  6. Create a PR with the Linear issue key, pass Quality Gate + AI Review Gate, then merge to main to publish (do not push straight to main)
 
 Reference:
   AUTHORING.md

@@ -1,17 +1,17 @@
-Feature: Blog publishing contract
-  The static blog should expose published writing and supporting discovery artifacts
-  while keeping drafts out of every public surface.
+# language: zh-CN
+功能: 博客发布契约
+  静态博客应对外展示已发布内容及配套的发现产物，同时让草稿不出现在任何公开界面。
 
-  Scenario: Published posts are visible while drafts stay private
-    Given the production site has been built
-    When I inspect the public blog entry points
-    Then the published starter post is available
-    And the deployment verification signal is visible on the homepage
-    And the draft sample is not exposed in public pages
+  场景: 已发布文章可见，草稿保持私有
+    假设 生产站点已构建
+    当 我检查公开博客入口
+    那么 已发布的起始文章可访问
+    并且 首页可见部署验证信号
+    并且 草稿样例不出现在公开页面
 
-  Scenario: Search, RSS, and sitemap expose published writing
-    Given the production site has been built
-    When I inspect the search, feed, and sitemap artifacts
-    Then Pagefind indexes the published starter post
-    And RSS includes the published starter post
-    And the sitemap includes the published starter post
+  场景: 搜索、RSS 和 sitemap 暴露已发布内容
+    假设 生产站点已构建
+    当 我检查搜索、订阅源和 sitemap 产物
+    那么 Pagefind 已索引已发布的起始文章
+    并且 RSS 包含已发布的起始文章
+    并且 sitemap 包含已发布的起始文章

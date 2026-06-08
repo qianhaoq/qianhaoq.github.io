@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 
-Given('the local authoring entry is available', function () {
+Given('本地作者入口可用', function () {
   assert.ok(existsSync('AUTHORING.md'), 'Expected AUTHORING.md to document the writer entry.');
 
   this.packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
@@ -12,7 +12,7 @@ Given('the local authoring entry is available', function () {
   assert.equal(this.packageJson.scripts.write, 'tsx scripts/write-post.ts');
 });
 
-When('I inspect the authoring contract', function () {
+When('我检查作者契约', function () {
   this.authoringGuide = readFileSync('AUTHORING.md', 'utf8');
   this.readerNavigation = readFileSync('src/lib/site.ts', 'utf8');
   this.authoringPage = readFileSync('dist/authoring/index.html', 'utf8');
@@ -23,68 +23,68 @@ When('I inspect the authoring contract', function () {
   ));
 });
 
-Then('the author can start a draft with one command', function () {
+Then('作者可以用一条命令开始草稿', function () {
   assert.match(this.authoringGuide, /pnpm write "文章标题"/);
   assert.equal(this.dryRunDraft.relativePath, 'src/content/posts/2026-06-06-bdd-authoring-draft.mdx');
 });
 
-Then('new authoring posts default to private drafts', function () {
+Then('新文章默认是私有草稿', function () {
   assert.equal(this.dryRunDraft.draft, true);
   assert.match(this.dryRunDraft.body, /draft: true/);
 });
 
-Then('the public reader navigation exposes the writing guide', function () {
+Then('公开读者导航暴露写作指南', function () {
   assert.match(this.readerNavigation, /href: '\/authoring\/'/);
   assert.match(this.readerNavigation, /label: '写作指南'/);
 });
 
-Then('the writing guide points to the local HTML workbench', function () {
+Then('写作指南指向本地 HTML 工作台', function () {
   assert.match(this.authoringGuide, /pnpm author:workbench/);
   assert.match(this.authoringGuide, /tools\/author-workbench\.html/);
   assert.match(this.authoringPage, /pnpm author:workbench/);
 });
 
-Then('the writing guide keeps editing in the local workflow', function () {
+Then('写作指南把编辑保留在本地工作流', function () {
   assert.match(this.authoringGuide, /公开站点导航里可以提供“写作指南”入口/);
   assert.match(this.authoringPage, /pnpm write "文章标题"/);
   assert.match(this.authoringPage, /本地仓库命令、PR 与 GitHub 权限边界内完成/);
 });
 
-Then('the public site does not expose online admin capabilities', function () {
+Then('公开站点不暴露在线后台能力', function () {
   assert.doesNotMatch(this.readerNavigation, /href: '\/admin\/?'/);
   assert.doesNotMatch(this.authoringPage, /href="\/admin|<form|type="password"|contenteditable|name="token"/);
 });
 
-When('I inspect the quality gate contract', function () {
+When('我检查质量门禁契约', function () {
   assert.ok(this.packageJson?.scripts, 'Expected package.json scripts to be loaded.');
   this.qualityScript = this.packageJson.scripts.quality;
   this.prQualityScript = this.packageJson.scripts['quality:pr'];
   this.lintScript = this.packageJson.scripts.lint;
 });
 
-Then('the default quality gate starts with lint', function () {
+Then('默认质量门禁以 lint 开头', function () {
   assert.equal(
     this.qualityScript,
     'pnpm lint && pnpm check && pnpm unit:gate && pnpm build && pnpm bdd'
   );
 });
 
-Then('lint fails on warnings', function () {
+Then('lint 遇到警告即失败', function () {
   assert.equal(this.lintScript, 'eslint . --max-warnings=0');
 });
 
-Then('the PR quality gate checks metadata before browser smoke', function () {
+Then('PR 质量门禁在浏览器冒烟前先检查元数据', function () {
   assert.equal(this.prQualityScript, 'pnpm pr:metadata && pnpm quality && pnpm browser:smoke');
 });
 
 
-When('I inspect the local authoring workbench', function () {
+When('我检查本地作者工作台', function () {
   this.workbench = readFileSync('tools/author-workbench.html', 'utf8');
   this.authorWorkbenchScript = readFileSync('scripts/author-workbench.ts', 'utf8');
   this.deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
 });
 
-Then('the workbench exposes all post schema fields and validation status', function () {
+Then('工作台暴露所有文章 schema 字段和校验状态', function () {
   for (const field of ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'draft', 'hero', 'series', 'linearIssue', 'body']) {
     assert.match(this.workbench, new RegExp(`id="${field}"`));
   }
@@ -92,13 +92,13 @@ Then('the workbench exposes all post schema fields and validation status', funct
   assert.match(this.workbench, /validate\(\)/);
 });
 
-Then('the workbench previews edited work in the page', function () {
+Then('工作台在页面内预览编辑结果', function () {
   assert.match(this.workbench, /最终展示效果预览/);
   assert.match(this.workbench, /renderPreview/);
   assert.match(this.workbench, /renderMarkdown/);
 });
 
-Then('the workbench prepares a publishing PR through the existing deployment workflow', function () {
+Then('工作台通过现有部署流程准备发布 PR', function () {
   assert.match(this.workbench, /准备发布 PR/);
   assert.match(this.workbench, /pnpm quality/);
   assert.match(this.workbench, /Linear issue key/);
@@ -110,7 +110,7 @@ Then('the workbench prepares a publishing PR through the existing deployment wor
   assert.match(this.authorWorkbenchScript, /tools', 'author-workbench\.html/);
 });
 
-Then('the workbench gives actionable retry feedback without storing tokens', function () {
+Then('工作台给出可操作的重试反馈且不存储 token', function () {
   assert.match(this.workbench, /修正后点击“准备发布 PR”重试/);
   assert.match(this.workbench, /不在公开站点绕过 review 直接上线|不会绕过 PR review/);
   assert.doesNotMatch(this.workbench, /name="token"|type="password"|localStorage\.setItem\(['"]token/);

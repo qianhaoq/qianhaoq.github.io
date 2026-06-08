@@ -1,28 +1,28 @@
-Feature: Authoring entry contract
-  The blog should keep the reader site public while giving the author a
-  draft-first local workflow for writing and publishing posts.
+# language: zh-CN
+功能: 作者入口契约
+  博客应保持读者站点对外公开，同时为作者提供草稿优先的本地写作、可视化编辑与发布工作流。
 
-  Scenario: Authoring starts from a private draft and is discoverable as a guide
-    Given the local authoring entry is available
-    When I inspect the authoring contract
-    Then the author can start a draft with one command
-    And new authoring posts default to private drafts
-    And the public reader navigation exposes the writing guide
-    And the writing guide points to the local HTML workbench
-    And the writing guide keeps editing in the local workflow
-    And the public site does not expose online admin capabilities
+  场景: 写作从私有草稿开始，并作为指南可被发现
+    假设 本地作者入口可用
+    当 我检查作者契约
+    那么 作者可以用一条命令开始草稿
+    并且 新文章默认是私有草稿
+    并且 公开读者导航暴露写作指南
+    并且 写作指南指向本地 HTML 工作台
+    并且 写作指南把编辑保留在本地工作流
+    并且 公开站点不暴露在线后台能力
 
-  Scenario: The local HTML workbench supports editing, preview, and publishing PR preparation
-    Given the local authoring entry is available
-    When I inspect the local authoring workbench
-    Then the workbench exposes all post schema fields and validation status
-    And the workbench previews edited work in the page
-    And the workbench prepares a publishing PR through the existing deployment workflow
-    And the workbench gives actionable retry feedback without storing tokens
+  场景: 本地 HTML 工作台支持编辑、预览与发布 PR 准备
+    假设 本地作者入口可用
+    当 我检查本地作者工作台
+    那么 工作台暴露所有文章 schema 字段和校验状态
+    并且 工作台在页面内预览编辑结果
+    并且 工作台通过现有部署流程准备发布 PR
+    并且 工作台给出可操作的重试反馈且不存储 token
 
-  Scenario: The default quality gate checks lint before publishing contracts
-    Given the local authoring entry is available
-    When I inspect the quality gate contract
-    Then the default quality gate starts with lint
-    And lint fails on warnings
-    And the PR quality gate checks metadata before browser smoke
+  场景: 默认质量门禁在发布契约前先做 lint
+    假设 本地作者入口可用
+    当 我检查质量门禁契约
+    那么 默认质量门禁以 lint 开头
+    并且 lint 遇到警告即失败
+    并且 PR 质量门禁在浏览器冒烟前先检查元数据

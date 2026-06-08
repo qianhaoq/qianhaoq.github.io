@@ -301,8 +301,30 @@
       const issue = linearIssueKey() || 'ONE-XX';
       const branch = `${issue.toLowerCase()}-${slugify(state.title.value || 'author-workbench-post')}`;
       const title = `${issue} 发布作品：${state.title.value.trim() || '未命名作品'}`;
-      const body = `## Acceptance\n\n- ${issue}: 本地作者工作台生成 MDX。\n- pnpm quality 通过后，PR 合入 main 触发 .github/workflows/deploy.yml 发布。`;
-      return `# 1. 保存本页生成的 MDX 到 ${relativePath}\n# 2. 发布前运行完整质量门禁\npnpm quality\n\n# 3. 用 PR 触发现有发布链路（PR 合入 main 后 GitHub Pages 自动部署）\ngit checkout -b ${branch}\ngit add ${relativePath}\ngit commit -m "通过本地工作台发布作品"\ngit push -u origin ${branch}\ngh pr create --title ${shellQuote(title)} --body ${shellQuote(body)}`;
+      // Reuse the full PR template sections so workbench-created PRs carry the same
+      // contract (Acceptance + BDD evidence + deployment/review/static-boundary) and pass
+      // the metadata gate; content-only posts use the explicit no-BDD waiver.
+      const body = [
+        '## Linear', '',
+        `- Issue: ${issue}`,
+        '- Project: AI-native qianhaoq.github.io 研发工作流', '',
+        '## Summary', '',
+        '- 通过本地作者工作台新增/更新文章并准备发布。', '',
+        '## Acceptance', '',
+        `- ${issue}: 本地作者工作台生成 MDX，取消 draft 后通过 PR 合入 main。`,
+        '- pnpm quality 通过后再合入；合入触发 .github/workflows/deploy.yml 发布。', '',
+        '## BDD / Tests', '',
+        '- 无需 BDD：新增文章内容，未改动用户可见行为代码。', '',
+        '## Deployment Verification', '',
+        '- [ ] merge 后通过 GitHub Pages 真实 URL 的 Deployment Verification。', '',
+        '## Review Evidence', '',
+        '- [ ] 已触发 Codex review，并等待 Claude review workflow。',
+        '- [ ] 合并前必须通过 Quality Gate 和 AI Review Gate。', '',
+        '## Static Boundary', '',
+        '- [x] 未新增公开 /admin、登录态、token 保存或服务端写仓库能力。',
+        '- [x] 未让 draft: true 内容进入公开页面、RSS、sitemap 或搜索索引。'
+      ].join('\n');
+      return `# 1. 保存本页生成的 MDX 到 ${relativePath}\n# 2. 发布前运行完整质量门禁\npnpm quality\n\n# 3. 用 PR 触发现有发布链路（PR 合入 main 后 GitHub Pages 自动部署）\ngit checkout -b ${branch}\ngit add ${shellQuote(relativePath)}\ngit commit -m "通过本地工作台发布作品"\ngit push -u origin ${branch}\ngh pr create --title ${shellQuote(title)} --body ${shellQuote(body)}`;
     }
 
     function update() {
