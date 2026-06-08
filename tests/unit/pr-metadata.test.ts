@@ -197,6 +197,16 @@ ${bddSection}`;
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\ndo not run pnpm bdd\n```'))).toBe(false);
     });
 
+    it('rejects a generic non-BDD test count as BDD evidence', () => {
+      // "Tests 51 passed" is unit/browser output, not proof the BDD suite ran.
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm unit\nTests 51 passed\n```'))).toBe(false);
+    });
+
+    it('accepts a short but genuine no-BDD waiver reason', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- 无需 BDD：纯文档'))).toBe(true);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- No BDD needed: typo'))).toBe(true);
+    });
+
     it('accepts evidence in a later fence when the template block stays empty', () => {
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\n\n```\n\n```text\npnpm bdd ✅ 8 scenarios passed\n```'))).toBe(true);
     });

@@ -58,12 +58,12 @@ export const extractFencedBlocks = (section) => {
   return blocks;
 };
 
-// Evidence must show a verification RESULT, not just a command name or loose keyword.
-// A bare `pnpm quality` token is insufficient: "pnpm quality 未运行" / "do not run pnpm bdd"
-// would otherwise satisfy the gate. Accept only concrete result artifacts that real tool
-// output contains: a cucumber scenario count (`8 scenarios` / `8 个场景`), a passing-test
-// count (`50 passed`), or a specific `features/<name>.feature` file reference.
-const BDD_EVIDENCE_PATTERN = /\d+\s+scenarios?\b|\d+\s*个场景|\d+\s+passed\b|features\/[\w-]+\.feature/i;
+// Evidence must show a BDD-specific verification RESULT, not a command name, a generic
+// test count, or a loose keyword. A bare `pnpm quality` token ("pnpm quality 未运行") or a
+// non-BDD runner count ("Tests 51 passed") must not satisfy a gate named for BDD evidence.
+// Accept only artifacts that prove the BDD suite ran or changed: a cucumber scenario count
+// (`8 scenarios` / `8 个场景`), or a specific `features/<name>.feature` file reference.
+const BDD_EVIDENCE_PATTERN = /\d+\s+scenarios?\b|\d+\s*个场景|features\/[\w-]+\.feature/i;
 
 const BDD_WAIVER_PATTERN = /^(?:无需\s*bdd|no\s+bdd(?:\s+needed)?)\s*[:：]?\s*(.*)$/i;
 
@@ -75,7 +75,9 @@ const hasBddWaiver = (section) =>
       const match = line.match(BDD_WAIVER_PATTERN);
       if (!match) return false;
       const reason = match[1].trim();
-      return reason.length >= 6 && !isPlaceholderLine(reason);
+      // The contract only requires a real, non-placeholder reason — short but genuine ones
+      // like "纯文档" or "typo" are valid, so reject only empty/placeholder reasons.
+      return reason.length >= 2 && !isPlaceholderLine(reason);
     });
 
 export const hasBddEvidence = (body) => {
