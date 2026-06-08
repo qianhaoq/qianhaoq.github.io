@@ -157,7 +157,7 @@
           <label><span>标签 <small>逗号分隔</small></span><input id="tags" name="tags" placeholder="AI Coding, 工程实践"></label>
           <label><span>封面 URL <small>可选</small></span><input id="hero" name="hero" type="url" placeholder="https://..."></label>
           <label><span>系列 <small>可选</small></span><input id="series" name="series" placeholder="长期复盘"></label>
-          <label><span>Linear issue key <small>发布 PR 必填</small></span><input id="linearIssue" name="linearIssue" required pattern="[A-Z]+-[0-9]+" placeholder="ONE-32" value="ONE-32"></label>
+          <label><span>Linear issue key <small>发布 PR 必填</small></span><input id="linearIssue" name="linearIssue" required pattern="[A-Z]+-[0-9]+" placeholder="ONE-32"></label>
           <div class="check-row"><input id="draft" name="draft" type="checkbox" checked><label for="draft">保持草稿私有（发布 PR 前改为未勾选）</label></div>
         </div>
 
@@ -215,6 +215,7 @@
         ['pubDate', '发布日期必填', /^\d{4}-\d{2}-\d{2}$/.test(state.pubDate.value), '选择有效发布日期。'],
         ['draft', 'draft 必须是明确布尔值', typeof state.draft.checked === 'boolean', '保留或取消草稿勾选。'],
         ['body', '正文必填', state.body.value.trim().length > 0, '写入正文内容。'],
+        ['linearIssue', 'Linear issue key 必填', /^[A-Z]+-[0-9]+$/.test(linearIssueKey()), '填写当前发布任务的 Linear issue key，例如 ONE-32。'],
         ['hero', '封面 URL 可选但必须有效', !state.hero.value || /^https?:\/\//.test(state.hero.value), '使用 http(s) URL 或留空。']
       ];
       return items;
