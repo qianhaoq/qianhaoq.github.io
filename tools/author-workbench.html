@@ -133,7 +133,7 @@
     <p class="lede">这个 HTML 文件只在本地仓库使用，用来编辑 <code>src/content/posts/*.mdx</code> 草稿。页面不会连接 GitHub、不会保存 token，也不会绕过 PR review；“发布”会按现有 GitHub Pages 链路准备发布 PR 清单。</p>
     <div class="notice" role="note">
       <strong>发布链路对应关系</strong>
-      <span>本页生成/更新 MDX → 作者运行 <code>pnpm quality</code> → 创建含 ONE-32 的 PR → PR 合入 <code>main</code> → <code>.github/workflows/deploy.yml</code> 使用 <code>withastro/action</code> 构建并部署到 GitHub Pages。</span>
+      <span>本页生成/更新 MDX → 作者运行 <code>pnpm quality</code> → 创建含对应 Linear issue key 的 PR → PR 合入 <code>main</code> → <code>.github/workflows/deploy.yml</code> 使用 <code>withastro/action</code> 构建并部署到 GitHub Pages。</span>
     </div>
   </header>
 
@@ -157,6 +157,7 @@
           <label><span>标签 <small>逗号分隔</small></span><input id="tags" name="tags" placeholder="AI Coding, 工程实践"></label>
           <label><span>封面 URL <small>可选</small></span><input id="hero" name="hero" type="url" placeholder="https://..."></label>
           <label><span>系列 <small>可选</small></span><input id="series" name="series" placeholder="长期复盘"></label>
+          <label><span>Linear issue key <small>发布 PR 必填</small></span><input id="linearIssue" name="linearIssue" required pattern="[A-Z]+-[0-9]+" placeholder="ONE-32" value="ONE-32"></label>
           <div class="check-row"><input id="draft" name="draft" type="checkbox" checked><label for="draft">保持草稿私有（发布 PR 前改为未勾选）</label></div>
         </div>
 
@@ -182,7 +183,7 @@
   </main>
 
   <script>
-    const fields = ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'hero', 'series', 'draft', 'body'];
+    const fields = ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'hero', 'series', 'linearIssue', 'draft', 'body'];
     const state = Object.fromEntries(fields.map((field) => [field, document.getElementById(field)]));
     const validationList = document.getElementById('validation-list');
     const statusBox = document.getElementById('status');
@@ -282,9 +283,21 @@
       return currentFileName || `${state.pubDate.value || today}-${slugify(state.title.value)}.mdx`;
     }
 
+    function linearIssueKey() {
+      return state.linearIssue.value.trim().toUpperCase();
+    }
+
+    function shellQuote(value) {
+      return `'${String(value).replace(/'/g, `'\\''`)}'`;
+    }
+
     function buildCommands() {
       const relativePath = `src/content/posts/${fileName()}`;
-      return `# 1. 保存本页生成的 MDX 到 ${relativePath}\n# 2. 发布前运行完整质量门禁\npnpm quality\n\n# 3. 用 PR 触发现有发布链路（PR 合入 main 后 GitHub Pages 自动部署）\ngit checkout -b one-32-author-workbench-post\ngit add ${relativePath}\ngit commit -m "通过本地工作台发布作品"\ngit push -u origin one-32-author-workbench-post\ngh pr create --title "ONE-32 发布作品：${state.title.value.trim() || '未命名作品'}" --body "## Acceptance\\n\\n- 本地作者工作台生成 MDX。\\n- pnpm quality 通过后，PR 合入 main 触发 .github/workflows/deploy.yml 发布。"`;
+      const issue = linearIssueKey() || 'ONE-XX';
+      const branch = `${issue.toLowerCase()}-${slugify(state.title.value || 'author-workbench-post')}`;
+      const title = `${issue} 发布作品：${state.title.value.trim() || '未命名作品'}`;
+      const body = `## Acceptance\n\n- ${issue}: 本地作者工作台生成 MDX。\n- pnpm quality 通过后，PR 合入 main 触发 .github/workflows/deploy.yml 发布。`;
+      return `# 1. 保存本页生成的 MDX 到 ${relativePath}\n# 2. 发布前运行完整质量门禁\npnpm quality\n\n# 3. 用 PR 触发现有发布链路（PR 合入 main 后 GitHub Pages 自动部署）\ngit checkout -b ${branch}\ngit add ${relativePath}\ngit commit -m "通过本地工作台发布作品"\ngit push -u origin ${branch}\ngh pr create --title ${shellQuote(title)} --body ${shellQuote(body)}`;
     }
 
     function update() {
@@ -336,7 +349,7 @@
         return;
       }
       statusBox.className = 'status ok';
-      statusBox.textContent = '发布 PR 清单已生成。请先运行 pnpm quality，通过后创建包含 ONE-32 的 PR；合入 main 后复用 GitHub Actions 发布到 GitHub Pages。';
+      statusBox.textContent = `发布 PR 清单已生成。请先运行 pnpm quality，通过后创建包含 ${linearIssueKey()} 的 PR；合入 main 后复用 GitHub Actions 发布到 GitHub Pages。`;
     }
 
     function parseFrontmatter(text) {

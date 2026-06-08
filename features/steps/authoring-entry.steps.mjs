@@ -85,7 +85,7 @@ When('I inspect the local authoring workbench', function () {
 });
 
 Then('the workbench exposes all post schema fields and validation status', function () {
-  for (const field of ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'draft', 'hero', 'series', 'body']) {
+  for (const field of ['title', 'description', 'pubDate', 'updatedDate', 'tags', 'draft', 'hero', 'series', 'linearIssue', 'body']) {
     assert.match(this.workbench, new RegExp(`id="${field}"`));
   }
   assert.match(this.workbench, /校验状态/);
@@ -101,7 +101,9 @@ Then('the workbench previews edited work in the page', function () {
 Then('the workbench prepares a publishing PR through the existing deployment workflow', function () {
   assert.match(this.workbench, /准备发布 PR/);
   assert.match(this.workbench, /pnpm quality/);
-  assert.match(this.workbench, /gh pr create --title "ONE-32/);
+  assert.match(this.workbench, /Linear issue key/);
+  assert.match(this.workbench, /gh pr create --title/);
+  assert.match(this.workbench, /linearIssueKey/);
   assert.match(this.workbench, /\.github\/workflows\/deploy\.yml/);
   assert.match(this.deployWorkflow, /branches: \[main\]/);
   assert.match(this.deployWorkflow, /actions\/deploy-pages/);
