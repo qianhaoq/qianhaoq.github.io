@@ -11,6 +11,7 @@ export const SITE = {
 export const NAV_ITEMS = [
   { href: '/', label: '首页' },
   { href: '/posts/', label: '文章' },
+  { href: '/authoring/', label: '写作指南' },
   { href: '/tags/', label: '标签' },
   { href: '/archive/', label: '归档' },
   { href: '/search/', label: '搜索' },
