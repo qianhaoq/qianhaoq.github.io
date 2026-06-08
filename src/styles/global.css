@@ -427,6 +427,71 @@ h3 {
   align-content: start;
 }
 
+.authoring-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 1160px;
+  margin: 0 auto;
+  gap: 18px;
+}
+
+.workflow-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 260px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  background: color-mix(in srgb, var(--bg-strong), transparent 3%);
+  box-shadow: 0 12px 36px rgb(23 32 28 / 7%);
+}
+
+.workflow-card h2 {
+  font-size: 22px;
+  line-height: 1.22;
+}
+
+.workflow-card p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+.workflow-card code {
+  align-self: end;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--bg-muted);
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.step-index {
+  color: var(--accent-warm);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.guardrail-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.guardrail-list span {
+  min-height: 54px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: var(--bg-strong);
+  color: var(--text);
+  font-weight: 800;
+}
+
 .signal-list span {
   min-height: 52px;
   padding: 10px 14px;
@@ -701,6 +766,7 @@ h3 {
   }
 
   .post-grid,
+  .authoring-flow,
   .split-section,
   .post-layout {
     grid-template-columns: 1fr;

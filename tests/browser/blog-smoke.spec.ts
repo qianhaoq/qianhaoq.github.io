@@ -13,10 +13,21 @@ test('reader entry keeps drafts private and renders responsive navigation', asyn
 
   await expect(page.getByRole('heading', { name: 'Hao Qian' })).toBeVisible();
   await expect(page.getByRole('link', { name: '文章', exact: true })).toBeVisible();
+  await expect(page.getByLabel('主导航').getByRole('link', { name: '写作指南', exact: true })).toBeVisible();
   await expect(page.getByText('这个博客从这里开始')).toBeVisible();
   await expect(page.getByText('草稿示例')).toHaveCount(0);
 
   await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
+});
+
+test('authoring guide is public guidance without online editing capability', async ({ page }) => {
+  await page.goto('/authoring/');
+
+  await expect(page.getByRole('heading', { name: '写作指南' })).toBeVisible();
+  await expect(page.getByText('不是在线后台')).toBeVisible();
+  await expect(page.getByText('pnpm write "文章标题"')).toBeVisible();
+  await expect(page.getByText('无公开 /admin')).toBeVisible();
+  await expect(page.getByText('无 GitHub token')).toBeVisible();
 });
 
 test('article page exposes table of contents, reading progress, and copy interaction', async ({ context, page }) => {

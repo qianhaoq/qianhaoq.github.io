@@ -14,6 +14,7 @@ Given('the local authoring entry is available', function () {
 When('I inspect the authoring contract', function () {
   this.authoringGuide = readFileSync('AUTHORING.md', 'utf8');
   this.readerNavigation = readFileSync('src/lib/site.ts', 'utf8');
+  this.authoringPage = readFileSync('dist/authoring/index.html', 'utf8');
   this.dryRunDraft = JSON.parse(execFileSync(
     'pnpm',
     ['--silent', 'write', 'BDD Authoring Draft', '--dry-run', '--date', '2026-06-06'],
@@ -31,8 +32,20 @@ Then('new authoring posts default to private drafts', function () {
   assert.match(this.dryRunDraft.body, /draft: true/);
 });
 
-Then('the public reader navigation stays separate from authoring tools', function () {
-  assert.doesNotMatch(this.readerNavigation, /\/admin|\/author|写作后台|作者入口/);
+Then('the public reader navigation exposes the writing guide', function () {
+  assert.match(this.readerNavigation, /href: '\/authoring\/'/);
+  assert.match(this.readerNavigation, /label: '写作指南'/);
+});
+
+Then('the writing guide keeps editing in the local workflow', function () {
+  assert.match(this.authoringGuide, /公开站点导航里可以提供“写作指南”入口/);
+  assert.match(this.authoringPage, /pnpm write "文章标题"/);
+  assert.match(this.authoringPage, /真实编辑仍在本地仓库和 GitHub 工作流内完成/);
+});
+
+Then('the public site does not expose online admin capabilities', function () {
+  assert.doesNotMatch(this.readerNavigation, /href: '\/admin\/?'/);
+  assert.doesNotMatch(this.authoringPage, /href="\/admin|<form|type="password"|contenteditable|name="token"/);
 });
 
 When('I inspect the quality gate contract', function () {
