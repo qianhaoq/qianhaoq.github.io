@@ -1,28 +1,28 @@
-Feature: Static pages and discovery contract
-  Beyond the publishing and authoring contracts, the static site must keep its
-  supporting reader pages (about, 404, archive grouping, tag detail) correct and
-  free of draft leakage.
+# language: zh-CN
+功能: 静态页面与发现契约
+  在发布契约和作者契约之外，静态站点还必须保证其配套的读者页面
+  （关于、404、归档分组、标签详情）正确无误，且不泄露草稿。
 
-  Scenario: The about page introduces the author and links out
-    Given the production site has been built
-    When I open the about page
-    Then the about page shows the author name and writing principles
-    And the about page links to the author GitHub profile
+  场景: 关于页面介绍作者并提供外链
+    假设 生产站点已构建
+    当 我打开关于页面
+    那么 关于页面展示作者名字和写作原则
+    并且 关于页面链接到作者的 GitHub 主页
 
-  Scenario: The 404 page guides readers back into the site
-    Given the production site has been built
-    When I open the not-found page
-    Then the not-found page explains the page is missing
-    And the not-found page offers links back to the posts list and homepage
+  场景: 404 页面引导读者回到站点
+    假设 生产站点已构建
+    当 我打开未找到页面
+    那么 未找到页面说明页面已丢失
+    并且 未找到页面提供回到文章列表和首页的链接
 
-  Scenario: The archive groups published posts by year without drafts
-    Given the production site has been built
-    When I open the archive page
-    Then the archive groups the published starter post under its year
-    And the archive does not expose the draft sample
+  场景: 归档按年份分组已发布文章且不含草稿
+    假设 生产站点已构建
+    当 我打开归档页面
+    那么 归档把已发布的起始文章归到其所属年份下
+    并且 归档不暴露草稿样例
 
-  Scenario: A tag detail page lists its published posts while draft tags stay private
-    Given the production site has been built
-    When I open the tag detail page for the starter post tag
-    Then the tag detail page lists the published starter post with its post count
-    And no public tag page is generated for the draft-only tag
+  场景: 标签详情页列出其已发布文章而纯草稿标签保持私有
+    假设 生产站点已构建
+    当 我打开起始文章标签的标签详情页
+    那么 标签详情页列出已发布的起始文章及其文章数
+    并且 不为纯草稿标签生成任何公开标签页

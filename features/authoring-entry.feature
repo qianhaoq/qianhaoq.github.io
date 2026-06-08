@@ -1,19 +1,19 @@
-Feature: Authoring entry contract
-  The blog should keep the reader site public while giving the author a
-  draft-first local workflow for writing and publishing posts.
+# language: zh-CN
+功能: 作者入口契约
+  博客应保持读者站点对外公开，同时为作者提供草稿优先的本地写作与发布工作流。
 
-  Scenario: Authoring starts from a private draft and is discoverable as a guide
-    Given the local authoring entry is available
-    When I inspect the authoring contract
-    Then the author can start a draft with one command
-    And new authoring posts default to private drafts
-    And the public reader navigation exposes the writing guide
-    And the writing guide keeps editing in the local workflow
-    And the public site does not expose online admin capabilities
+  场景: 写作从私有草稿开始，并作为指南可被发现
+    假设 本地作者入口可用
+    当 我检查作者契约
+    那么 作者可以用一条命令开始草稿
+    并且 新文章默认是私有草稿
+    并且 公开读者导航暴露写作指南
+    并且 写作指南把编辑保留在本地工作流
+    并且 公开站点不暴露在线后台能力
 
-  Scenario: The default quality gate checks lint before publishing contracts
-    Given the local authoring entry is available
-    When I inspect the quality gate contract
-    Then the default quality gate starts with lint
-    And lint fails on warnings
-    And the PR quality gate checks metadata before browser smoke
+  场景: 默认质量门禁在发布契约前先做 lint
+    假设 本地作者入口可用
+    当 我检查质量门禁契约
+    那么 默认质量门禁以 lint 开头
+    并且 lint 遇到警告即失败
+    并且 PR 质量门禁在浏览器冒烟前先检查元数据

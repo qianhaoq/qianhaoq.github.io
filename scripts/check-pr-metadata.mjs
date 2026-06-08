@@ -47,6 +47,20 @@ export const extractFencedBlock = (section) => {
   return match ? normalize(match[1]) : '';
 };
 
+export const extractFencedBlocks = (section) => {
+  const normalized = normalize(section);
+  const pattern = /```[^\n]*\n([\s\S]*?)```/g;
+  const blocks = [];
+  let match;
+  while ((match = pattern.exec(normalized)) !== null) {
+    blocks.push(normalize(match[1]));
+  }
+  return blocks;
+};
+
+// Evidence must reference real verification, not arbitrary filler such as "not run".
+const BDD_EVIDENCE_PATTERN = /pnpm\s+(?:bdd|quality)|features\/|\d+\s+scenarios?|\bpassed\b|通过/i;
+
 const BDD_WAIVER_PATTERN = /^(?:无需\s*bdd|no\s+bdd(?:\s+needed)?)\s*[:：]?\s*(.*)$/i;
 
 const hasBddWaiver = (section) =>
@@ -67,11 +81,12 @@ export const hasBddEvidence = (body) => {
   // An explicit, non-placeholder waiver is an accepted escape hatch.
   if (hasBddWaiver(section)) return true;
 
-  // Otherwise require real verification evidence inside the fenced block.
-  // The template's checkboxes mention `pnpm quality` / `features/**` as guidance,
-  // so evidence must live in the (otherwise empty) fenced verification block.
-  const evidence = extractFencedBlock(section);
-  return Boolean(evidence) && evidence.length >= 6 && !isPlaceholderLine(evidence);
+  // Otherwise require real verification evidence inside a fenced block. The template's
+  // checkboxes mention `pnpm quality` / `features/**` as guidance, so evidence must live
+  // in a fenced verification block. Scan every fence (not just the first) so authors can
+  // keep the empty template block and append real output below it, and require the
+  // content to reference actual verification rather than arbitrary filler text.
+  return extractFencedBlocks(section).some((block) => BDD_EVIDENCE_PATTERN.test(block));
 };
 
 export const hasMeaningfulAcceptance = (body) => {

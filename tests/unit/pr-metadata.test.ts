@@ -190,6 +190,14 @@ ${bddSection}`;
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm quality ✅ lint/check/unit/build/bdd\n```'))).toBe(true);
     });
 
+    it('accepts evidence in a later fence when the template block stays empty', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\n\n```\n\n```text\npnpm bdd ✅ 8 scenarios passed\n```'))).toBe(true);
+    });
+
+    it('rejects a fenced block with filler text that is not real verification', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\nnot run yet\n```'))).toBe(false);
+    });
+
     it('accepts an explicit Chinese no-BDD waiver with a reason', () => {
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- 无需 BDD：仅调整内部脚本注释，无用户可见行为变化'))).toBe(true);
     });

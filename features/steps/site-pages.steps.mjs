@@ -13,17 +13,17 @@ const draftMarker = /草稿示例|draft-note|Draft/;
 const readDist = (relativePath) => readFileSync(path.join(distDir, relativePath), 'utf8');
 const distExists = (relativePath) => existsSync(path.join(distDir, relativePath));
 
-When('I open the about page', function () {
+When('我打开关于页面', function () {
   this.html = readDist('about/index.html');
   this.page = load(this.html);
 });
 
-Then('the about page shows the author name and writing principles', function () {
+Then('关于页面展示作者名字和写作原则', function () {
   assert.match(this.html, /Hao Qian/);
   assert.match(this.html, /写作原则/);
 });
 
-Then('the about page links to the author GitHub profile', function () {
+Then('关于页面链接到作者的 GitHub 主页', function () {
   const hrefs = this.page('a')
     .map((_, element) => this.page(element).attr('href') ?? '')
     .toArray();
@@ -33,16 +33,16 @@ Then('the about page links to the author GitHub profile', function () {
   );
 });
 
-When('I open the not-found page', function () {
+When('我打开未找到页面', function () {
   this.html = readDist('404.html');
   this.page = load(this.html);
 });
 
-Then('the not-found page explains the page is missing', function () {
+Then('未找到页面说明页面已丢失', function () {
   assert.match(this.html, /页面未找到/);
 });
 
-Then('the not-found page offers links back to the posts list and homepage', function () {
+Then('未找到页面提供回到文章列表和首页的链接', function () {
   const hrefs = this.page('a')
     .map((_, element) => this.page(element).attr('href') ?? '')
     .toArray();
@@ -50,31 +50,35 @@ Then('the not-found page offers links back to the posts list and homepage', func
   assert.ok(hrefs.includes('/'), `Expected a link to the homepage. Found: ${hrefs.join(', ')}`);
 });
 
-When('I open the archive page', function () {
+When('我打开归档页面', function () {
   this.html = readDist('archive/index.html');
 });
 
-Then('the archive groups the published starter post under its year', function () {
+Then('归档把已发布的起始文章归到其所属年份下', function () {
   assert.match(this.html, /<h2>2026<\/h2>/);
   assert.match(this.html, new RegExp(starterTitle));
 });
 
-Then('the archive does not expose the draft sample', function () {
+Then('归档不暴露草稿样例', function () {
   assert.doesNotMatch(this.html, draftMarker);
 });
 
-When('I open the tag detail page for the starter post tag', function () {
+When('我打开起始文章标签的标签详情页', function () {
   // "AI Coding" is slugified to "ai-coding"; the page lists posts carrying that tag.
   this.html = readDist('tags/ai-coding/index.html');
 });
 
-Then('the tag detail page lists the published starter post with its post count', function () {
+Then('标签详情页列出已发布的起始文章及其文章数', function () {
   assert.match(this.html, /<h1>AI Coding<\/h1>/);
   assert.match(this.html, new RegExp(starterTitle));
-  assert.match(this.html, /1 篇文章/);
+  // Assert the count is rendered and covers the starter post, without freezing it to the
+  // current sample size — adding more "AI Coding" posts must not break this contract.
+  const countMatch = this.html.match(/(\d+) 篇文章/);
+  assert.ok(countMatch, 'Expected a post count on the tag detail page.');
+  assert.ok(Number(countMatch[1]) >= 1, `Expected at least one post on the tag page, saw ${countMatch?.[1]}.`);
 });
 
-Then('no public tag page is generated for the draft-only tag', function () {
+Then('不为纯草稿标签生成任何公开标签页', function () {
   // The draft sample's only tag is "Draft"; drafts are excluded, so no tag page exists.
   assert.ok(!distExists('tags/draft'), 'Draft-only tag must not produce a public tag page.');
   assert.ok(!distExists('tags/Draft'), 'Draft-only tag must not produce a public tag page.');
