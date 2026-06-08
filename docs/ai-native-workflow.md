@@ -67,13 +67,13 @@ Slack 或 Linear Asks 进入的需求默认停在 `Triage`。人类 owner 需要
 
 PR 标题或描述必须包含 Linear issue key，例如 `ONE-15`。这样 Linear 的 GitHub integration 可以把 issue 与 PR 关联起来，GitHub Actions 和 review 结果仍留在 GitHub 作为事实源。
 
-`quality:pr` 会运行 `scripts/check-pr-metadata.mjs`，在 CI 或已有本地 PR 分支上提供快速反馈。`AI Review Gate` 会从默认分支的 `trusted-base` checkout 再执行同一 metadata gate，作为不可被 PR head 改写的硬门禁。没有真实 Linear issue key，或 `## Acceptance` 仍是占位内容时，PR 不能合并。
+`quality:pr` 会运行 `scripts/check-pr-metadata.mjs`，在 CI 或已有本地 PR 分支上提供快速反馈。`AI Review Gate` 会从默认分支的 `trusted-base` checkout 再执行同一 metadata gate，作为不可被 PR head 改写的硬门禁。没有真实 Linear issue key、`## Acceptance` 仍是占位内容，或 `## BDD / Tests` 既没有真实验证证据也没有显式 `无需 BDD：<原因>` 豁免时，PR 不能合并。
 
 PR 合并条件：
 
 1. `Quality Gate` 通过。
 2. `AI Review Gate` 通过。
-3. 代码仓库或用户可见行为已同步 BDD，并在 PR 描述里贴出验证证据。
+3. 代码仓库或用户可见行为已同步 BDD，并在 PR 描述的 `## BDD / Tests` 里贴出验证证据，或写明 `无需 BDD：<原因>`；该要求由 `scripts/check-pr-metadata.mjs` 自动化强制。
 4. 如存在 PR preview URL，已在真实 preview URL 上跑 smoke/BDD 验证。
 5. 人类确认需求仍然成立。
 6. 没有草稿、secret、后台路由或 GitHub Pages 静态边界风险。

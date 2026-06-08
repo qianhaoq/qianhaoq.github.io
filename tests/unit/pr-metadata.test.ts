@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
+  extractFencedBlock,
   extractMarkdownSection,
   findLinearIssueKeys,
+  hasBddEvidence,
   hasLinearIssueKey,
   hasMeaningfulAcceptance,
   readPullRequestMetadataFromGitHubCli,
@@ -25,7 +27,13 @@ const validBody = `## Linear
 
 ## BDD / Tests
 
-- [x] pnpm unit`;
+- [x] 同步 features/site-pages.feature 与 step definitions
+
+验证结果：
+
+\`\`\`text
+pnpm quality ✅ (lint, check, unit:gate, build, bdd 全部通过)
+\`\`\``;
 
 describe('PR metadata gate contracts', () => {
   it('extracts markdown sections by heading', () => {
@@ -106,7 +114,15 @@ describe('PR metadata gate contracts', () => {
       title: 'ONE-123 Harden workflow gate',
       body: `## Acceptance
 
-- PR metadata gate accepts future real Linear issue keys.`
+- PR metadata gate accepts future real Linear issue keys.
+
+## BDD / Tests
+
+验证结果：
+
+\`\`\`text
+pnpm bdd ✅ 8 scenarios passed
+\`\`\``
     })).toMatchObject({
       passed: true,
       errors: []
@@ -143,5 +159,56 @@ describe('PR metadata gate contracts', () => {
     expect(result.passed).toBe(false);
     expect(result.errors).toContain('PR title or body must include a Linear issue key such as ONE-15.');
     expect(result.errors).toContain('PR body must include a non-placeholder ## Acceptance section.');
+    expect(result.errors).toContain('PR body must include BDD evidence in the ## BDD / Tests section (verification output or a features/** change), or an explicit no-BDD reason such as "无需 BDD：原因".');
+  });
+
+  describe('BDD evidence gate', () => {
+    const withBdd = (bddSection: string) => `## Linear
+
+- Issue: ONE-31
+
+## Acceptance
+
+- Every PR must carry BDD evidence or an explicit waiver.
+
+${bddSection}`;
+
+    it('extracts the fenced verification block from a section', () => {
+      const section = extractMarkdownSection(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm bdd ✅\n```'), 'BDD / Tests');
+      expect(extractFencedBlock(section)).toBe('pnpm bdd ✅');
+    });
+
+    it('rejects an empty verification block', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\n\n```'))).toBe(false);
+    });
+
+    it('rejects a PR body without a BDD / Tests section', () => {
+      expect(hasBddEvidence('## Acceptance\n\n- No BDD section at all.')).toBe(false);
+    });
+
+    it('accepts a filled verification block as evidence', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\npnpm quality ✅ lint/check/unit/build/bdd\n```'))).toBe(true);
+    });
+
+    it('accepts an explicit Chinese no-BDD waiver with a reason', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- 无需 BDD：仅调整内部脚本注释，无用户可见行为变化'))).toBe(true);
+    });
+
+    it('accepts an explicit English no-BDD waiver with a reason', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- No BDD needed: docs-only typo fix, no user-visible behavior'))).toBe(true);
+    });
+
+    it('rejects a placeholder waiver without a real reason', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- 无需 BDD：todo'))).toBe(false);
+    });
+
+    it('fails validation when BDD evidence is missing but other metadata is valid', () => {
+      const result = validatePrMetadata({
+        title: 'ONE-31 add coverage',
+        body: '## Acceptance\n\n- Adds discovery BDD scenarios for static pages.'
+      });
+      expect(result.passed).toBe(false);
+      expect(result.errors).toContain('PR body must include BDD evidence in the ## BDD / Tests section (verification output or a features/** change), or an explicit no-BDD reason such as "无需 BDD：原因".');
+    });
   });
 });

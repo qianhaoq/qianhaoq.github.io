@@ -78,7 +78,7 @@ PR 默认检查运行 `pnpm quality:pr`，它会在完整质量门禁后继续�
 ## BDD 要求
 
 - 新增或修改用户可见行为时，先补或同步补 BDD 场景，再实现。
-- 代码仓库改动必须在 PR 描述里给出 BDD 证据；确实不涉及行为时要说明原因。
+- 默认每个 PR 都必须在 `## BDD / Tests` 段给出 BDD 证据（`验证结果` 围栏块里贴 `pnpm bdd` / `pnpm quality` 输出或 `features/**` 变更），或写明 `无需 BDD：<原因>`；这条由 `scripts/check-pr-metadata.mjs` 自动化强制，详见 `bdd.md`。
 - BDD 场景描述业务行为，不描述组件内部实现。
 - `pnpm bdd` 必须在 `pnpm build` 后执行，因为它读取 `dist/` 产物。
 - 草稿隔离、已发布文章可发现、RSS、sitemap、搜索索引等发布契约必须保持 BDD 覆盖。

@@ -42,6 +42,38 @@ export const findLinearIssueKeys = ({ title = '', body = '' }) =>
 export const hasLinearIssueKey = ({ title = '', body = '' }) =>
   findLinearIssueKeys({ title, body }).length > 0;
 
+export const extractFencedBlock = (section) => {
+  const match = normalize(section).match(/```[^\n]*\n([\s\S]*?)```/);
+  return match ? normalize(match[1]) : '';
+};
+
+const BDD_WAIVER_PATTERN = /^(?:无需\s*bdd|no\s+bdd(?:\s+needed)?)\s*[:：]?\s*(.*)$/i;
+
+const hasBddWaiver = (section) =>
+  section
+    .split('\n')
+    .map(stripListSyntax)
+    .some((line) => {
+      const match = line.match(BDD_WAIVER_PATTERN);
+      if (!match) return false;
+      const reason = match[1].trim();
+      return reason.length >= 6 && !isPlaceholderLine(reason);
+    });
+
+export const hasBddEvidence = (body) => {
+  const section = extractMarkdownSection(body, 'BDD / Tests');
+  if (!section) return false;
+
+  // An explicit, non-placeholder waiver is an accepted escape hatch.
+  if (hasBddWaiver(section)) return true;
+
+  // Otherwise require real verification evidence inside the fenced block.
+  // The template's checkboxes mention `pnpm quality` / `features/**` as guidance,
+  // so evidence must live in the (otherwise empty) fenced verification block.
+  const evidence = extractFencedBlock(section);
+  return Boolean(evidence) && evidence.length >= 6 && !isPlaceholderLine(evidence);
+};
+
 export const hasMeaningfulAcceptance = (body) => {
   const acceptance = extractMarkdownSection(body, 'Acceptance');
   if (!acceptance) return false;
@@ -69,6 +101,10 @@ export const validatePrMetadata = ({ title = '', body = '' }) => {
 
   if (!hasMeaningfulAcceptance(body)) {
     errors.push('PR body must include a non-placeholder ## Acceptance section.');
+  }
+
+  if (!hasBddEvidence(body)) {
+    errors.push('PR body must include BDD evidence in the ## BDD / Tests section (verification output or a features/** change), or an explicit no-BDD reason such as "无需 BDD：原因".');
   }
 
   return {
@@ -137,5 +173,5 @@ if (isDirectRun) {
     process.exit(1);
   }
 
-  console.log('PR metadata includes a Linear issue key and meaningful acceptance criteria.');
+  console.log('PR metadata includes a Linear issue key, meaningful acceptance criteria, and BDD evidence.');
 }
