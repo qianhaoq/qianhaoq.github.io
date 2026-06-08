@@ -207,6 +207,15 @@ ${bddSection}`;
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- No BDD needed: typo'))).toBe(true);
     });
 
+    it('rejects a waiver that keeps the angle-bracket placeholder reason', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- 无需 BDD：<原因>'))).toBe(false);
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n- No BDD needed: <reason>'))).toBe(false);
+    });
+
+    it('accepts a nested feature file reference as evidence', () => {
+      expect(hasBddEvidence(withBdd('## BDD / Tests\n\n```text\nUpdated features/reader/static-pages.feature\n```'))).toBe(true);
+    });
+
     it('accepts evidence in a later fence when the template block stays empty', () => {
       expect(hasBddEvidence(withBdd('## BDD / Tests\n\n验证结果：\n\n```text\n\n```\n\n```text\npnpm bdd ✅ 8 scenarios passed\n```'))).toBe(true);
     });

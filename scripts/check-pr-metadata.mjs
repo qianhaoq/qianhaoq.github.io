@@ -7,8 +7,7 @@ const PLACEHOLDER_VALUES = new Set(['-', 'todo', 'tbd', 'n/a', 'none']);
 const PLACEHOLDER_PATTERNS = [
   /^required:/i,
   /^replace\b/i,
-  /^<LINEAR-ISSUE-KEY>$/i,
-  /^<ACCEPTANCE-CRITERION-\d+>$/i
+  /^<[^>]+>$/ // any fully angle-bracketed placeholder, e.g. <原因>, <reason>, <LINEAR-ISSUE-KEY>
 ];
 
 const normalize = (value) => (value ?? '').replace(/\r\n/g, '\n').trim();
@@ -62,8 +61,9 @@ export const extractFencedBlocks = (section) => {
 // test count, or a loose keyword. A bare `pnpm quality` token ("pnpm quality 未运行") or a
 // non-BDD runner count ("Tests 51 passed") must not satisfy a gate named for BDD evidence.
 // Accept only artifacts that prove the BDD suite ran or changed: a cucumber scenario count
-// (`8 scenarios` / `8 个场景`), or a specific `features/<name>.feature` file reference.
-const BDD_EVIDENCE_PATTERN = /\d+\s+scenarios?\b|\d+\s*个场景|features\/[\w-]+\.feature/i;
+// (`8 scenarios` / `8 个场景`), or a `features/**/<name>.feature` file reference (the docs
+// allow nested feature paths, so accept any depth).
+const BDD_EVIDENCE_PATTERN = /\d+\s+scenarios?\b|\d+\s*个场景|features\/(?:[\w-]+\/)*[\w-]+\.feature/i;
 
 const BDD_WAIVER_PATTERN = /^(?:无需\s*bdd|no\s+bdd(?:\s+needed)?)\s*[:：]?\s*(.*)$/i;
 
