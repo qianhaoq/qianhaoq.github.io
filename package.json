@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "github:refresh": "tsx scripts/refresh-github.ts",
     "build": "astro build && pagefind --site dist",
     "lint": "eslint . --max-warnings=0",
     "check": "astro check",

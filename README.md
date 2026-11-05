@@ -44,6 +44,10 @@ pnpm preview
 
 `pnpm build` 会先执行 Astro 静态构建，再生成 Pagefind 搜索索引。搜索页需要在 `pnpm build && pnpm preview` 后验证。
 
+## 首页 GitHub 数据
+
+首页项目与图表使用已提交的公开仓库快照，正常构建不依赖 GitHub API。维护时运行 `pnpm github:refresh`，审查 `src/data/github.json` 的差异，再随 PR 更新；建议每月或项目公开状态变化后刷新。数据范围、失效降级和人工项目选读清单见 [维护说明](docs/github-homepage.md)。
+
 ## AI-native 工作流
 
 进入 protected `main` 的 PR 使用 Linear 作为需求和验收来源，GitHub 作为代码、review、CI 和发布来源。

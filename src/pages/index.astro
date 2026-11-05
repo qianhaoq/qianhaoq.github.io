@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
+import GithubShowcase from '../components/GithubShowcase.astro';
 import { SITE } from '../lib/site';
 import { getAllTags, getPublishedPosts } from '../lib/posts';
 
@@ -20,6 +21,7 @@ const tags = getAllTags(posts).slice(0, 10);
       </p>
       <div class="hero-actions">
         <a class="button primary" href="/posts/">阅读文章</a>
+        <a class="button secondary" href="#github">GitHub 项目</a>
         <a class="button secondary" href="/authoring/">写作指南</a>
         <a class="button secondary" href="/about/">了解我</a>
       </div>
@@ -37,6 +39,8 @@ const tags = getAllTags(posts).slice(0, 10);
       {latestPosts.map((post) => <PostCard post={post} />)}
     </div>
   </section>
+
+  <GithubShowcase />
 
   <section class="section-band muted">
     <div class="split-section">

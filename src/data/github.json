@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "account": "qianhaoq",
+  "fetchedAt": "2026-11-05T08:22:21.469Z",
+  "source": "https://api.github.com/users/qianhaoq/repos?type=owner&per_page=100&sort=full_name",
+  "scope": "public-owned-nonfork-nonarchived",
+  "repositories": [
+    {
+      "name": "ai-devflow-weekly",
+      "url": "https://github.com/qianhaoq/ai-devflow-weekly",
+      "description": "中文 AI 研发工作流资讯聚合周刊",
+      "primaryLanguage": "Python",
+      "pushedAt": "2026-11-05T03:31:48Z"
+    },
+    {
+      "name": "ai-pricing-weekly",
+      "url": "https://github.com/qianhaoq/ai-pricing-weekly",
+      "description": "AI SaaS 定价变动周报",
+      "primaryLanguage": null,
+      "pushedAt": "2026-10-15T04:36:41Z"
+    },
+    {
+      "name": "ai-quant-lab",
+      "url": "https://github.com/qianhaoq/ai-quant-lab",
+      "description": null,
+      "primaryLanguage": "Python",
+      "pushedAt": "2026-11-05T07:51:11Z"
+    },
+    {
+      "name": "codexignore-gen",
+      "url": "https://github.com/qianhaoq/codexignore-gen",
+      "description": "Generate .codexignore templates for Codex CLI — like gitignore.io but for Codex",
+      "primaryLanguage": "Python",
+      "pushedAt": "2026-04-07T03:21:43Z"
+    },
+    {
+      "name": "design",
+      "url": "https://github.com/qianhaoq/design",
+      "description": null,
+      "primaryLanguage": null,
+      "pushedAt": "2026-04-19T09:18:23Z"
+    },
+    {
+      "name": "devflow-gates",
+      "url": "https://github.com/qianhaoq/devflow-gates",
+      "description": "Reusable CI / Codex / QA / Auto-merge / smoke gates",
+      "primaryLanguage": "JavaScript",
+      "pushedAt": "2026-11-05T07:47:29Z"
+    },
+    {
+      "name": "doctor-monitor",
+      "url": "https://github.com/qianhaoq/doctor-monitor",
+      "description": "医院医生号源监控系统 - 定时监控号源变化并通知",
+      "primaryLanguage": "Python",
+      "pushedAt": "2026-03-28T14:42:00Z"
+    },
+    {
+      "name": "dota2.ai",
+      "url": "https://github.com/qianhaoq/dota2.ai",
+      "description": "dota2",
+      "primaryLanguage": "TypeScript",
+      "pushedAt": "2026-11-04T20:05:45Z"
+    },
+    {
+      "name": "duoread-site",
+      "url": "https://github.com/qianhaoq/duoread-site",
+      "description": "DuoRead public privacy/support site",
+      "primaryLanguage": "HTML",
+      "pushedAt": "2026-11-01T11:33:23Z"
+    },
+    {
+      "name": "health-assistant-platform",
+      "url": "https://github.com/qianhaoq/health-assistant-platform",
+      "description": "Mainland China medical AI assistant one-stop platform MVP",
+      "primaryLanguage": "JavaScript",
+      "pushedAt": "2026-04-19T15:32:13Z"
+    },
+    {
+      "name": "kilocean-translate",
+      "url": "https://github.com/qianhaoq/kilocean-translate",
+      "description": "千浩翻译 · Kilocean Translate — Chrome extension: progressive webpage translation via DeepSeek API",
+      "primaryLanguage": "JavaScript",
+      "pushedAt": "2026-11-02T05:34:38Z"
+    },
+    {
+      "name": "qh-dsh-dota-coach",
+      "url": "https://github.com/qianhaoq/qh-dsh-dota-coach",
+      "description": "Evidence-based Dota 2 coaching for DSH with local MemOS memory, replay traces and one-goal training loops",
+      "primaryLanguage": "TypeScript",
+      "pushedAt": "2026-11-05T07:50:53Z"
+    },
+    {
+      "name": "qh-dsh-weixin",
+      "url": "https://github.com/qianhaoq/qh-dsh-weixin",
+      "description": "DeepSeek Harness plugin for direct WeChat ClawBot messaging through the iLink bot API",
+      "primaryLanguage": "TypeScript",
+      "pushedAt": "2026-10-29T01:52:02Z"
+    },
+    {
+      "name": "qh-personal-agent",
+      "url": "https://github.com/qianhaoq/qh-personal-agent",
+      "description": "个人语音记事与语音助手 (Android Kotlin + FastAPI monorepo)",
+      "primaryLanguage": "Python",
+      "pushedAt": "2026-11-04T17:23:24Z"
+    },
+    {
+      "name": "qianhaoq.github.io",
+      "url": "https://github.com/qianhaoq/qianhaoq.github.io",
+      "description": "Personal blog for AI Coding, engineering practice, and product thinking",
+      "primaryLanguage": "TypeScript",
+      "pushedAt": "2026-06-08T09:32:48Z"
+    },
+    {
+      "name": "ubuntu-backup",
+      "url": "https://github.com/qianhaoq/ubuntu-backup",
+      "description": null,
+      "primaryLanguage": null,
+      "pushedAt": "2017-09-12T12:07:10Z"
+    },
+    {
+      "name": "WelcomePage",
+      "url": "https://github.com/qianhaoq/WelcomePage",
+      "description": null,
+      "primaryLanguage": null,
+      "pushedAt": "2016-06-21T12:18:03Z"
+    }
+  ]
+}

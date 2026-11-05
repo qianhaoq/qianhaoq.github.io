@@ -1,0 +1,178 @@
+---
+import { loadGithubSnapshot } from '../lib/github-data';
+import { GITHUB_SOURCE, isSnapshotStale, languageCounts, pushRecencyCounts, SELECTED_PROJECTS } from '../lib/github';
+import { SITE } from '../lib/site';
+
+const snapshot = await loadGithubSnapshot();
+const repositories = snapshot?.repositories ?? [];
+const projects = SELECTED_PROJECTS.flatMap(project => {
+  const repository = repositories.find(repo => repo.name === project.name);
+  return repository ? [{ ...project, ...repository }] : [];
+});
+const languages = languageCounts(repositories);
+const languageMax = Math.max(1, ...languages.map(row => row.count));
+const recency = snapshot ? pushRecencyCounts(repositories, snapshot.fetchedAt) : [];
+const recencyMax = Math.max(1, ...recency.map(row => row.count));
+const stale = snapshot ? isSnapshotStale(snapshot.fetchedAt) : false;
+const timestamp = snapshot?.fetchedAt.replace('T', ' ').slice(0, 16);
+---
+
+<section id="github" class="section-band muted github-section" aria-labelledby="github-title" data-pagefind-ignore>
+  <div class="section-heading github-heading">
+    <div>
+      <p class="eyebrow">Build in public</p>
+      <h2 id="github-title">在 GitHub 上实践</h2>
+    </div>
+    <a href={SITE.github}>查看 GitHub <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="github-content">
+    <p class="github-intro">从日常工具到 Agent 应用，把想法做成可以查看、讨论和迭代的项目。</p>
+    {snapshot && repositories.length > 0 ? (
+      <>
+        <div class="snapshot-meta">
+          <span class:list={['snapshot-status', { stale }]} data-snapshot-status data-stale={stale}>
+            {stale ? '历史快照 · 请核对 GitHub' : '公开数据 · 静态快照'}
+          </span>
+          <span>采集于 <time data-snapshot-time datetime={snapshot.fetchedAt}>{timestamp} UTC</time></span>
+        </div>
+
+        {projects.length > 0 && (
+          <div class="project-grid" aria-label="GitHub 项目选读">
+            {projects.map((project, index) => (
+              <article class="project-card">
+                <div class="project-topline"><span>{project.category}</span><span class="project-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></div>
+                <h3><a href={project.url}>{project.title}<span aria-hidden="true"> ↗</span></a></h3>
+                <p>{project.summary}</p>
+                <div class="project-meta"><span>{project.primaryLanguage ?? '主语言未标注'}</span><span>{project.name}</span></div>
+              </article>
+            ))}
+          </div>
+        )}
+        <p class="github-caption">项目选读：简介依据各仓库 README 整理，点击项目可查看源码与当前说明。</p>
+
+        <div class="github-data-heading">
+          <p class="eyebrow">Repository snapshot</p>
+          <h3>公开仓库，一次快照</h3>
+          <p>统计范围：{repositories.length} 个公开、非 fork、非归档仓库，已排除停用的主页仓库。每个仓库只计一次。</p>
+        </div>
+        <div class="github-charts">
+          <figure class="github-chart" aria-labelledby="language-title">
+            <figcaption>
+              <h4 id="language-title">主语言分布</h4>
+              <p>GitHub 标注的仓库主语言；未标注项单独列出。</p>
+            </figcaption>
+            <div class="chart-scale" aria-hidden="true"><span>0</span><span>每条轨道最多 {languageMax} 个仓库</span></div>
+            <ul class="chart-rows" aria-label="按主语言统计的仓库数量">
+              {languages.map(({ language, count }, index) => (
+                <li class:list={['chart-row', `chart-color-${index % 5}`]} data-language-count={count}>
+                  <span class="chart-label">{language}</span>
+                  <span class="chart-track" aria-hidden="true"><span style={`width: ${count / languageMax * 100}%`}></span></span>
+                  <span class="chart-value">{count}<span class="sr-only"> 个仓库</span></span>
+                </li>
+              ))}
+            </ul>
+            <p class="chart-note">这是仓库数量，不是代码量、贡献量或能力评分。</p>
+          </figure>
+
+          <figure class="github-chart" aria-labelledby="recency-title">
+            <figcaption>
+              <h4 id="recency-title">最近一次推送距采集日</h4>
+              <p>按 GitHub 记录的仓库最后推送日期分组，以采集时刻为基准。</p>
+            </figcaption>
+            <div class="chart-scale" aria-hidden="true"><span>0</span><span>每条轨道最多 {recencyMax} 个仓库</span></div>
+            <ul class="chart-rows" aria-label="按最近推送时间统计的仓库数量">
+              {recency.map(({ label, count }, index) => (
+                <li class:list={['chart-row', `chart-color-${index}`]} data-recency-count={count}>
+                  <span class="chart-label">{label}</span>
+                  <span class="chart-track" aria-hidden="true"><span style={`width: ${count / recencyMax * 100}%`}></span></span>
+                  <span class="chart-value">{count}<span class="sr-only"> 个仓库</span></span>
+                </li>
+              ))}
+            </ul>
+            <p class="chart-note">推送可能来自协作者或自动化，不等同于个人提交或贡献。</p>
+          </figure>
+        </div>
+
+        <details class="github-methodology">
+          <summary>数据来源、更新方式与边界</summary>
+          <p>来源为 <a class="inline-link" href={GITHUB_SOURCE}>GitHub 公开仓库 API</a>，仅查询 qianhaoq 名下公开仓库，再排除 fork、归档与停用主页仓库。主语言来自 language 字段，时间来自 pushed_at；不读取私有仓库，不统计全年贡献。</p>
+          <p>页面使用随站点保存的静态快照，不在访问时请求 GitHub。维护者通过仓库命令更新数据、审查差异并随 PR 发布；不是实时数据。采集失败保留上次有效快照，超过 30 天标记为历史快照，请以 GitHub 当前页面为准。已保存的历史快照不会随仓库后续变更自动消失。</p>
+        </details>
+        <p class="github-caption freshness-note">数据超过 30 天后请以 GitHub 为准；图表相对时间固定在采集日。</p>
+      </>
+    ) : (
+      <div class="github-unavailable">
+        <h3>GitHub 数据暂不可用</h3>
+        <p>尚无有效公开数据快照。请前往 <a class="inline-link" href={SITE.github}>GitHub 查看公开项目</a>。</p>
+      </div>
+    )}
+  </div>
+</section>
+
+<script>
+  import { isSnapshotStale } from '../lib/github';
+  const time = document.querySelector<HTMLTimeElement>('[data-snapshot-time]');
+  const status = document.querySelector<HTMLElement>('[data-snapshot-status]');
+  // Keep the age notice accurate even when Pages has not been rebuilt. No network request.
+  if (time && status && isSnapshotStale(time.dateTime)) {
+    status.textContent = '历史快照 · 请核对 GitHub';
+    status.classList.add('stale');
+    status.dataset.stale = 'true';
+  }
+</script>
+
+<style>
+  .github-section { scroll-margin-top: 120px; }
+  .github-content { max-width: 1160px; margin: 0 auto; }
+  .github-intro { max-width: 720px; margin: -2px 0 20px; font-size: 18px; line-height: 1.8; color: var(--text-muted); }
+  .snapshot-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 28px; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .snapshot-status { padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-strong); color: var(--accent-strong); font-weight: 700; }
+  .snapshot-status.stale { color: var(--accent-warm); }
+  .project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .project-card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-strong); }
+  .project-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 26px; color: var(--accent-strong); font-size: 13px; font-weight: 700; }
+  .project-number { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .project-card h3 { font-size: 24px; line-height: 1.3; }
+  .project-card h3 a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; }
+  .project-card h3 a:hover { text-decoration-color: var(--accent); }
+  .project-card h3 a span { color: var(--accent-strong); font-size: 20px; }
+  .project-card p { flex: 1; margin: 16px 0 24px; color: var(--text-muted); line-height: 1.8; }
+  .project-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--text-muted); font-size: 12px; overflow-wrap: anywhere; }
+  .project-meta span:first-child { color: var(--accent-strong); font-weight: 700; }
+  .github-caption { margin: 16px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.8; }
+  .github-data-heading { margin: 56px 0 24px; }
+  .github-data-heading h3 { font-size: clamp(26px, 3vw, 36px); }
+  .github-data-heading > p:last-child { max-width: 820px; margin: 16px 0 0; color: var(--text-muted); line-height: 1.8; }
+  .github-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .github-chart { min-width: 0; margin: 0; padding: 28px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-strong); }
+  .github-chart h4 { margin: 0; font-size: 20px; line-height: 1.4; }
+  .github-chart figcaption p { margin: 10px 0 24px; color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+  .chart-scale { display: flex; justify-content: space-between; margin: 0 0 16px 108px; color: var(--text-muted); font-size: 11px; }
+  .chart-rows { display: grid; gap: 18px; margin: 0; padding: 0; list-style: none; }
+  .chart-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 22px; gap: 12px; align-items: center; font-size: 13px; line-height: 1.5; }
+  .chart-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; }
+  .chart-track { height: 12px; border-radius: 2px; background: var(--bg-muted); overflow: hidden; }
+  .chart-track > span { display: block; height: 100%; background: var(--accent); }
+  .chart-color-1 .chart-track > span { background: var(--accent-warm); }
+  .chart-color-2 .chart-track > span { background: var(--accent-gold); }
+  .chart-color-3 .chart-track > span { background: var(--text-muted); }
+  .chart-color-4 .chart-track > span { background: var(--accent-strong); }
+  .chart-note { margin: 26px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.8; }
+  .github-methodology { margin-top: 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; font-size: 14px; line-height: 1.9; }
+  .github-methodology summary { cursor: pointer; font-weight: 700; }
+  .github-methodology p { max-width: 960px; margin: 14px 0 0; color: var(--text-muted); }
+  .github-unavailable { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; background: var(--bg-strong); }
+  .github-unavailable h3 { font-size: 22px; }
+  .github-unavailable p { margin: 16px 0 0; line-height: 1.8; color: var(--text-muted); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 5px; border-radius: 2px; }
+  @media (max-width: 1000px) { .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .github-charts { grid-template-columns: 1fr; } }
+  @media (max-width: 620px) {
+    .project-grid { grid-template-columns: 1fr; }
+    .project-topline { margin-bottom: 18px; }
+    .github-chart { padding: 22px 18px; }
+    .chart-row { grid-template-columns: 82px minmax(0, 1fr) 18px; gap: 8px; font-size: 12px; }
+    .chart-scale { margin-left: 90px; }
+    .github-data-heading { margin-top: 42px; }
+  }
+</style>
